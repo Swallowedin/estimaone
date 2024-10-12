@@ -149,38 +149,29 @@ def check_response_relevance(response: str, options: list) -> bool:
 def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int, int, list, Dict[str, Any]]:
     try:
         prestation_info = prestations.get(domaine, {}).get(prestation, {})
-        heures = prestation_info.get('heures', 10)
-        tarif_horaire = prestation_info.get('tarif_horaire', 150)
-        estimation = heures * tarif_horaire
+        forfait = prestation_info.get('tarif')
+
+        if not forfait:
+            return None, None, ["Aucun forfait trouvé pour cette prestation."], {}
 
         calcul_details = [
-            f"Heures estimées: {heures}",
-            f"Tarif horaire: {tarif_horaire} €",
-            f"Estimation initiale: {heures} x {tarif_horaire} = {estimation} €"
+            f"Forfait pour la prestation '{prestation}': {forfait} €"
         ]
 
         if urgency == "Urgent":
             facteur_urgence = prestation_info.get('facteur_urgence', 1.5)
-            estimation *= facteur_urgence
+            forfait_urgent = round(forfait * facteur_urgence)
             calcul_details.extend([
                 f"Facteur d'urgence appliqué: x{facteur_urgence}",
-                f"Estimation après urgence: {estimation} €"
+                f"Forfait après application du facteur d'urgence: {forfait_urgent} €"
             ])
+            forfait = forfait_urgent
 
-        forfait = prestation_info.get('forfait')
-        if forfait:
-            calcul_details.append(f"Forfait disponible: {forfait} €")
-            if forfait < estimation:
-                estimation = forfait
-                calcul_details.append(f"Forfait appliqué: {forfait} €")
-
-        estimation_basse, estimation_haute = round(estimation * 0.8), round(estimation * 1.2)
-        calcul_details.append(f"Fourchette d'estimation: {estimation_basse} € - {estimation_haute} €")
+        estimation_basse, estimation_haute = forfait, forfait
 
         tarifs_utilises = {
-            "tarif_horaire": tarif_horaire,
-            "facteur_urgence": facteur_urgence if urgency == "Urgent" else "Non appliqué",
-            "forfait_prestation": forfait if forfait else "Pas de forfait"
+            "forfait_prestation": forfait,
+            "facteur_urgence": facteur_urgence if urgency == "Urgent" else "Non appliqué"
         }
 
         return estimation_basse, estimation_haute, calcul_details, tarifs_utilises
@@ -291,19 +282,22 @@ def main():
                 loading_placeholder.empty()
 
                 # Afficher les résultats
-                st.success("Analyse terminée. Voici votre estimation :")
-                
-                # Mise en valeur de l'estimation
-                st.markdown(f"""
-                <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
-                    <h2 style="color: #1f618d;">Estimation du devis</h2>
-                    <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
-                        Entre <span style="color: #e74c3c;">{estimation_basse} €HT</span> et <span style="color: #e74c3c;">{estimation_haute} €HT</span>
-                    </p>
-                    <p style="font-style: italic;">Pour le domaine : {domaine if domaine else 'Non déterminé'}</p>
-                    <p style="font-style: italic;">Prestation : {prestation if prestation else 'Non déterminée'}</p>
-                </div>
-                """, unsafe_allow_html=True)
+                if estimation_basse is not None:
+                    st.success("Analyse terminée. Voici votre estimation :")
+                    
+                    # Mise en valeur du forfait
+                    st.markdown(f"""
+                    <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h2 style="color: #1f618d;">Forfait estimé</h2>
+                        <p style="font-size: 28px; font-weight: bold; color: #2c3e50;">
+                            <span style="color: #e74c3c;">{estimation_basse} €HT</span>
+                        </p>
+                        <p style="font-style: italic;">Domaine : {domaine if domaine else 'Non déterminé'}</p>
+                        <p style="font-style: italic;">Prestation : {prestation if prestation else 'Non déterminée'}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.warning("Aucun forfait n'a été trouvé pour cette prestation spécifique.")
 
                 st.markdown("---")
 
@@ -316,15 +310,9 @@ def main():
                 elif not is_relevant:
                     st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.subheader("Détails du calcul")
-                    for detail in calcul_details:
-                        st.write(detail)
-
-                with col2:
-                    st.subheader("Éléments tarifaires utilisés")
-                    st.json(tarifs_utilises)
+                st.subheader("Détails du calcul")
+                for detail in calcul_details:
+                    st.write(detail)
 
                 st.subheader("Analyse détaillée")
                 st.write(detailed_analysis)
