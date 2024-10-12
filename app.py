@@ -249,8 +249,13 @@ def main():
                 with loading_placeholder:
                     display_loading_animation()
                 
-                # Effectuer toutes les analyses et calculs
+                # Effectuer l'analyse avec GPT-4
                 domaine, prestation, confidence, is_relevant = analyze_question(question, client_type, urgency)
+                
+                if not domaine or not prestation:
+                    st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer.")
+                    return
+
                 estimation_basse, estimation_haute, calcul_details, tarifs_utilises = calculate_estimate(domaine, prestation, urgency)
                 detailed_analysis, elements_used, sources = get_detailed_analysis(question, client_type, urgency, domaine, prestation)
 
