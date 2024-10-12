@@ -291,24 +291,33 @@ def main():
                 loading_placeholder.empty()
 
                 # Afficher les résultats
-                st.success("Analyse terminée. Voici les résultats :")
+                st.success("Analyse terminée. Voici votre estimation :")
                 
+                # Mise en valeur de l'estimation
+                st.markdown(f"""
+                <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h2 style="color: #1f618d;">Estimation du devis</h2>
+                    <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
+                        Entre <span style="color: #e74c3c;">{estimation_basse} €HT</span> et <span style="color: #e74c3c;">{estimation_haute} €HT</span>
+                    </p>
+                    <p style="font-style: italic;">Pour le domaine : {domaine if domaine else 'Non déterminé'}</p>
+                    <p style="font-style: italic;">Prestation : {prestation if prestation else 'Non déterminée'}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.markdown("---")
+
                 st.subheader("Indice de confiance de l'analyse")
                 st.progress(confidence)
                 st.write(f"Confiance : {confidence:.2%}")
 
                 if confidence < 0.5:
-                    st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation suivante peut manquer de précision.")
+                    st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
                 elif not is_relevant:
-                    st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. Nous allons tout de même tenter de vous fournir une estimation indicative.")
+                    st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.subheader("Résumé de l'estimation")
-                    st.write(f"**Domaine juridique :** {domaine if domaine else 'Non déterminé'}")
-                    st.write(f"**Prestation :** {prestation if prestation else 'Non déterminée'}")
-                    st.write(f"**Estimation :** Entre {estimation_basse} €HT et {estimation_haute} €HT")
-                    
                     st.subheader("Détails du calcul")
                     for detail in calcul_details:
                         st.write(detail)
@@ -317,19 +326,21 @@ def main():
                     st.subheader("Éléments tarifaires utilisés")
                     st.json(tarifs_utilises)
 
-                    st.subheader("Éléments spécifiques pris en compte")
+                st.subheader("Analyse détaillée")
+                st.write(detailed_analysis)
+
+                expander = st.expander("Voir les éléments spécifiques pris en compte")
+                with expander:
                     if isinstance(elements_used, dict) and "domaine" in elements_used and "prestation" in elements_used:
                         st.json(elements_used)
                     else:
                         st.warning("Les éléments spécifiques n'ont pas pu être analysés de manière optimale.")
                         st.json(elements_used)
 
-                st.subheader("Analyse détaillée")
-                st.write(detailed_analysis)
-
                 if sources and sources != "Aucune source spécifique mentionnée.":
-                    st.subheader("Sources d'information")
-                    st.write(sources)
+                    expander = st.expander("Voir les sources d'information")
+                    with expander:
+                        st.write(sources)
 
                 st.markdown("---")
                 st.markdown("### 💡 Alternative Recommandée")
