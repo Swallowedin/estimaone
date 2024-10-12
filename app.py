@@ -67,7 +67,7 @@ instructions = instructions_module.get_chatbot_instructions() if instructions_mo
 
 
 def analyze_question(question: str, client_type: str, urgency: str) -> Tuple[str, str, float, bool]:
-    options = [f"{domaine}: {', '.join(prestations_domaine.keys())}" for domaine, prestations_domaine in prestations.items()]
+    options = [f"{domaine}: {', '.join(prestations_domaine['prestations'].keys())}" for domaine, prestations_domaine in prestations.items()]
     prompt = f"""Analysez la question suivante et déterminez si elle concerne un problème juridique. Si c'est le cas, identifiez le domaine juridique et la prestation la plus pertinente.
 
 Question : {question}
@@ -81,7 +81,7 @@ Répondez au format JSON strict suivant :
 {{
     "est_juridique": true/false,
     "domaine": "nom du domaine juridique",
-    "prestation": "nom de la prestation",
+    "prestation": "nom de la prestation (pas le label)",
     "explication": "Brève explication de votre analyse",
     "indice_confiance": 0.0 à 1.0
 }}
@@ -89,7 +89,7 @@ Répondez au format JSON strict suivant :
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",  # Utilisation de GPT-4
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": instructions},
                 {"role": "user", "content": prompt}
@@ -102,7 +102,10 @@ Répondez au format JSON strict suivant :
         domain = result['domaine']
         service = result['prestation']
         confidence = result['indice_confiance']
-        is_relevant = result['est_juridique'] and domain in prestations and service in prestations[domain]
+        is_relevant = result['est_juridique'] and domain in prestations and service in prestations[domain]['prestations']
+        
+        logger.info(f"Domaine identifié : {domain}")
+        logger.info(f"Prestation identifiée : {service}")
         
         return domain, service, confidence, is_relevant
     except Exception as e:
@@ -125,7 +128,8 @@ def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int
         prestation_info = prestations_domaine.get(prestation)
         if not prestation_info:
             logger.error(f"Prestation non trouvée : {prestation} dans le domaine {domaine}")
-            return None, None, [f"Aucune prestation trouvée pour : {prestation} dans le domaine {domaine}"], {}
+            available_prestations = ", ".join(prestations_domaine.keys())
+            return None, None, [f"Prestation '{prestation}' non trouvée dans le domaine '{domaine}'. Prestations disponibles : {available_prestations}"], {}
 
         forfait = prestation_info.get('tarif')
         if not forfait:
