@@ -115,18 +115,29 @@ def check_response_relevance(response: str, options: list) -> bool:
 
 def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int, int, list, Dict[str, Any]]:
     try:
-        prestation_info = prestations.get(domaine, {}).get('prestations', {}).get(prestation, {})
-        forfait = prestation_info.get('tarif')
+        # Récupérer les prestations pour le domaine spécifié
+        domaine_info = prestations.get(domaine)
+        if not domaine_info:
+            logger.error(f"Domaine non trouvé : {domaine}")
+            return None, None, [f"Aucun domaine trouvé pour : {domaine}"], {}
 
+        prestations_domaine = domaine_info.get('prestations', {})
+        prestation_info = prestations_domaine.get(prestation)
+        if not prestation_info:
+            logger.error(f"Prestation non trouvée : {prestation} dans le domaine {domaine}")
+            return None, None, [f"Aucune prestation trouvée pour : {prestation} dans le domaine {domaine}"], {}
+
+        forfait = prestation_info.get('tarif')
         if not forfait:
-            return None, None, ["Aucun forfait trouvé pour cette prestation."], {}
+            logger.error(f"Aucun tarif défini pour la prestation : {prestation}")
+            return None, None, [f"Aucun forfait défini pour la prestation : {prestation}"], {}
 
         calcul_details = [
-            f"Forfait pour la prestation '{prestation}': {forfait} €"
+            f"Forfait pour la prestation '{prestation_info['label']}': {forfait} €"
         ]
 
         if urgency == "Urgent":
-            facteur_urgence = 1.5  # Facteur d'urgence par défaut
+            facteur_urgence = get_facteur_urgence()
             forfait_urgent = round(forfait * facteur_urgence)
             calcul_details.extend([
                 f"Facteur d'urgence appliqué: x{facteur_urgence}",
@@ -134,17 +145,15 @@ def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int
             ])
             forfait = forfait_urgent
 
-        estimation_basse, estimation_haute = forfait, forfait
-
         tarifs_utilises = {
             "forfait_prestation": forfait,
             "facteur_urgence": facteur_urgence if urgency == "Urgent" else "Non appliqué"
         }
 
-        return estimation_basse, estimation_haute, calcul_details, tarifs_utilises
+        return forfait, forfait, calcul_details, tarifs_utilises
     except Exception as e:
         logger.exception(f"Erreur dans calculate_estimate: {str(e)}")
-        raise
+        return None, None, [f"Erreur lors du calcul de l'estimation : {str(e)}"], {}
 
 def get_detailed_analysis(question: str, client_type: str, urgency: str, domaine: str, prestation: str) -> Tuple[str, Dict[str, Any], str]:
     prompt = f"""En tant qu'assistant juridique virtuel pour View Avocats, analysez la question suivante et expliquez votre raisonnement pour le choix du domaine juridique et de la prestation.
@@ -244,13 +253,16 @@ def main():
                 domaine, prestation, confidence, is_relevant = analyze_question(question, client_type, urgency)
                 
                 if not domaine or not prestation:
-                    st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer.")
+                    st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
                     return
 
-                estimation_basse, estimation_haute, calcul_details, tarifs_utilises = calculate_estimate(domaine, prestation, urgency)
+                forfait, _, calcul_details, tarifs_utilises = calculate_estimate(domaine, prestation, urgency)
                 
-                if estimation_basse is None:
-                    st.warning("Aucun forfait n'a été trouvé pour cette prestation spécifique.")
+                if forfait is None:
+                    st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
+                    for detail in calcul_details:
+                        st.write(detail)
+                    st.info("Pour obtenir une estimation précise, veuillez nous contacter directement.")
                     return
 
                 detailed_analysis, elements_used, sources = get_detailed_analysis(question, client_type, urgency, domaine, prestation)
@@ -266,10 +278,10 @@ def main():
                 <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
                     <h2 style="color: #1f618d;">Forfait estimé</h2>
                     <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
-                        <span style="color: #e74c3c;">{estimation_basse} €HT</span>
+                        <span style="color: #e74c3c;">{forfait} €HT</span>
                     </p>
-                    <p style="font-style: italic;">Pour le domaine : {domaine if domaine else 'Non déterminé'}</p>
-                    <p style="font-style: italic;">Prestation : {prestation if prestation else 'Non déterminée'}</p>
+                    <p style="font-style: italic;">Domaine : {domaine}</p>
+                    <p style="font-style: italic;">Prestation : {prestation}</p>
                 </div>
                 """, unsafe_allow_html=True)
 
