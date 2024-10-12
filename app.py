@@ -1,5 +1,4 @@
 import streamlit as st
-import os
 from openai import OpenAI
 import json
 import logging
@@ -7,7 +6,12 @@ from typing import Tuple, Dict, Any
 import importlib.util
 from collections import Counter
 
+# Configuration de la page Streamlit
 st.set_page_config(page_title="Estim'IA - Obtenez une estimation grâce à l'IA", page_icon="⚖️", layout="wide")
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Fonction pour appliquer le CSS personnalisé
 def apply_custom_css():
@@ -34,31 +38,16 @@ def apply_custom_css():
         </style>
     """, unsafe_allow_html=True)
 
-try:
-    import tiktoken
-    TIKTOKEN_AVAILABLE = True
-except ImportError:
-    TIKTOKEN_AVAILABLE = False
-    st.warning("Le module tiktoken n'est pas installé. Le comptage des tokens sera moins précis.")
-
-def count_tokens(text: str, model: str = "gpt-3.5-turbo") -> int:
-    if TIKTOKEN_AVAILABLE:
-        encoding = tiktoken.encoding_for_model(model)
-        return len(encoding.encode(text))
-    else:
-        # Méthode de repli simple si tiktoken n'est pas disponible
-        return len(text.split())
-
-# Configuration du logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 # Configuration du client OpenAI
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY n'est pas défini dans les variables d'environnement")
-
-client = OpenAI(api_key=OPENAI_API_KEY)
+try:
+    OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+    if not OPENAI_API_KEY:
+        st.error("OPENAI_API_KEY n'est pas défini dans les secrets Streamlit.")
+        st.stop()
+    client = OpenAI(api_key=OPENAI_API_KEY)
+except Exception as e:
+    st.error(f"Erreur lors de la configuration du client OpenAI : {str(e)}")
+    st.stop()
 
 # Chargement des modules
 def load_py_module(file_path: str, module_name: str):
@@ -71,6 +60,7 @@ def load_py_module(file_path: str, module_name: str):
         logger.error(f"Erreur lors du chargement du module {module_name}: {e}")
         return None
 
+# Chargement des modules personnalisés
 prestations_module = load_py_module('./prestations.py', 'prestations')
 instructions_module = load_py_module('./chatbot-instructions.py', 'consignes_chatbot')
 
@@ -78,6 +68,7 @@ instructions_module = load_py_module('./chatbot-instructions.py', 'consignes_cha
 prestations = prestations_module.get_prestations() if prestations_module else {}
 instructions = instructions_module.get_chatbot_instructions() if instructions_module else ""
 
+# Fonction pour obtenir une réponse de l'API OpenAI
 def get_openai_response(prompt: str, model: str = "gpt-3.5-turbo", num_iterations: int = 3) -> Tuple[list, int]:
     try:
         responses = []
