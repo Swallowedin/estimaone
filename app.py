@@ -87,51 +87,60 @@ def get_openai_response(prompt: str, model: str = "gpt-3.5-turbo", num_iteration
         raise
 
 def analyze_question(question: str, client_type: str, urgency: str) -> Tuple[str, str, float, bool]:
-    prestations_data = get_prestations()
-    
-    prompt = f"""Analysez la question suivante et déterminez le domaine juridique et la prestation la plus pertinente.
+    options = [f"{domaine}: {', '.join(prestations_domaine.keys())}" for domaine, prestations_domaine in prestations.items()]
+    prompt = f"""Analysez la question suivante et déterminez si elle concerne un problème juridique. Si c'est le cas, identifiez le domaine juridique et la prestation la plus pertinente.
 
 Question : {question}
 Type de client : {client_type}
 Degré d'urgence : {urgency}
 
-Voici les domaines et prestations disponibles avec leurs mots-clés associés :
-
-{json.dumps(prestations_data, indent=2)}
+Options de domaines et prestations :
+{' '.join(options)}
 
 Répondez au format JSON strict suivant :
 {{
-    "domaine": "nom_du_domaine",
-    "prestation": "nom_de_la_prestation",
-    "explication": "Brève explication de votre choix",
+    "est_juridique": true/false,
+    "domaine": "nom du domaine juridique",
+    "prestation": "nom de la prestation",
+    "explication": "Brève explication de votre analyse",
     "indice_confiance": 0.0 à 1.0
 }}
 """
 
-    response = client.chat.completions.create(
-        model="gpt-4",  # Utilisation de GPT-4
-        messages=[
-            {"role": "system", "content": "Vous êtes un assistant juridique spécialisé dans l'analyse de questions et la recommandation de prestations juridiques."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3,
-        max_tokens=500
-    )
-
-    try:
-        result = json.loads(response.choices[0].message.content)
-        domain = result['domaine']
-        prestation = result['prestation']
-        confidence = result['indice_confiance']
-        is_relevant = domain in prestations_data and prestation in prestations_data[domain]['prestations']
-        
-        return domain, prestation, confidence, is_relevant
-    except (json.JSONDecodeError, KeyError):
-        logger.error("Erreur dans l'analyse de la réponse de l'API")
+    responses = get_openai_response(prompt)
+    
+    results = []
+    for response in responses:
+        try:
+            result = json.loads(response)
+            results.append(result)
+        except json.JSONDecodeError:
+            logger.error("Erreur de décodage JSON dans la réponse de l'API")
+    
+    if not results:
         return "", "", 0.0, False
 
-# Utilisation de la fonction
-domain, prestation, confidence, is_relevant = analyze_question(question, client_type, urgency)
+    # Calcul de la cohérence des réponses
+    is_legal_count = Counter(r['est_juridique'] for r in results)
+    domains = Counter(r['domaine'] for r in results if r['est_juridique'])
+    prestations_count = Counter(r['prestation'] for r in results if r['est_juridique'])
+    
+    is_legal = is_legal_count[True] > is_legal_count[False]
+    domain = domains.most_common(1)[0][0] if domains else ""
+    service = prestations_count.most_common(1)[0][0] if prestations_count else ""
+    
+    # Calcul de l'indice de confiance
+    consistency = (is_legal_count[is_legal] / len(results) +
+                   (domains[domain] / len(results) if domain else 0) +
+                   (prestations_count[service] / len(results) if service else 0)) / 3
+    
+    avg_confidence = sum(r['indice_confiance'] for r in results) / len(results)
+    
+    final_confidence = (consistency + avg_confidence) / 2
+    
+    is_relevant = is_legal and domain in prestations and service in prestations[domain]
+    
+    return domain, service, final_confidence, is_relevant
 
 def check_response_relevance(response: str, options: list) -> bool:
     response_lower = response.lower()
@@ -140,29 +149,38 @@ def check_response_relevance(response: str, options: list) -> bool:
 def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int, int, list, Dict[str, Any]]:
     try:
         prestation_info = prestations.get(domaine, {}).get(prestation, {})
-        forfait = prestation_info.get('tarif')
-
-        if not forfait:
-            return None, None, ["Aucun forfait trouvé pour cette prestation."], {}
+        heures = prestation_info.get('heures', 10)
+        tarif_horaire = prestation_info.get('tarif_horaire', 150)
+        estimation = heures * tarif_horaire
 
         calcul_details = [
-            f"Forfait pour la prestation '{prestation}': {forfait} €"
+            f"Heures estimées: {heures}",
+            f"Tarif horaire: {tarif_horaire} €",
+            f"Estimation initiale: {heures} x {tarif_horaire} = {estimation} €"
         ]
 
         if urgency == "Urgent":
             facteur_urgence = prestation_info.get('facteur_urgence', 1.5)
-            forfait_urgent = round(forfait * facteur_urgence)
+            estimation *= facteur_urgence
             calcul_details.extend([
                 f"Facteur d'urgence appliqué: x{facteur_urgence}",
-                f"Forfait après application du facteur d'urgence: {forfait_urgent} €"
+                f"Estimation après urgence: {estimation} €"
             ])
-            forfait = forfait_urgent
 
-        estimation_basse, estimation_haute = forfait, forfait
+        forfait = prestation_info.get('forfait')
+        if forfait:
+            calcul_details.append(f"Forfait disponible: {forfait} €")
+            if forfait < estimation:
+                estimation = forfait
+                calcul_details.append(f"Forfait appliqué: {forfait} €")
+
+        estimation_basse, estimation_haute = round(estimation * 0.8), round(estimation * 1.2)
+        calcul_details.append(f"Fourchette d'estimation: {estimation_basse} € - {estimation_haute} €")
 
         tarifs_utilises = {
-            "forfait_prestation": forfait,
-            "facteur_urgence": facteur_urgence if urgency == "Urgent" else "Non appliqué"
+            "tarif_horaire": tarif_horaire,
+            "facteur_urgence": facteur_urgence if urgency == "Urgent" else "Non appliqué",
+            "forfait_prestation": forfait if forfait else "Pas de forfait"
         }
 
         return estimation_basse, estimation_haute, calcul_details, tarifs_utilises
@@ -273,22 +291,19 @@ def main():
                 loading_placeholder.empty()
 
                 # Afficher les résultats
-                if estimation_basse is not None:
-                    st.success("Analyse terminée. Voici votre estimation :")
-                    
-                    # Mise en valeur du forfait
-                    st.markdown(f"""
-                    <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
-                        <h2 style="color: #1f618d;">Forfait estimé</h2>
-                        <p style="font-size: 28px; font-weight: bold; color: #2c3e50;">
-                            <span style="color: #e74c3c;">{estimation_basse} €HT</span>
-                        </p>
-                        <p style="font-style: italic;">Domaine : {domaine if domaine else 'Non déterminé'}</p>
-                        <p style="font-style: italic;">Prestation : {prestation if prestation else 'Non déterminée'}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.warning("Aucun forfait n'a été trouvé pour cette prestation spécifique.")
+                st.success("Analyse terminée. Voici votre estimation :")
+                
+                # Mise en valeur de l'estimation
+                st.markdown(f"""
+                <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h2 style="color: #1f618d;">Estimation du devis</h2>
+                    <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
+                        Entre <span style="color: #e74c3c;">{estimation_basse} €HT</span> et <span style="color: #e74c3c;">{estimation_haute} €HT</span>
+                    </p>
+                    <p style="font-style: italic;">Pour le domaine : {domaine if domaine else 'Non déterminé'}</p>
+                    <p style="font-style: italic;">Prestation : {prestation if prestation else 'Non déterminée'}</p>
+                </div>
+                """, unsafe_allow_html=True)
 
                 st.markdown("---")
 
@@ -301,9 +316,15 @@ def main():
                 elif not is_relevant:
                     st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
-                st.subheader("Détails du calcul")
-                for detail in calcul_details:
-                    st.write(detail)
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.subheader("Détails du calcul")
+                    for detail in calcul_details:
+                        st.write(detail)
+
+                with col2:
+                    st.subheader("Éléments tarifaires utilisés")
+                    st.json(tarifs_utilises)
 
                 st.subheader("Analyse détaillée")
                 st.write(detailed_analysis)
