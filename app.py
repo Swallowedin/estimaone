@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 from openai import OpenAI
 import json
 import logging
@@ -38,8 +39,7 @@ def apply_custom_css():
         </style>
     """, unsafe_allow_html=True)
 
-# Configuration du client OpenAI
-    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY n'est pas défini dans les variables d'environnement")
 
