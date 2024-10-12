@@ -87,60 +87,51 @@ def get_openai_response(prompt: str, model: str = "gpt-3.5-turbo", num_iteration
         raise
 
 def analyze_question(question: str, client_type: str, urgency: str) -> Tuple[str, str, float, bool]:
-    options = [f"{domaine}: {', '.join(prestations_domaine.keys())}" for domaine, prestations_domaine in prestations.items()]
-    prompt = f"""Analysez la question suivante et déterminez si elle concerne un problème juridique. Si c'est le cas, identifiez le domaine juridique et la prestation la plus pertinente.
+    prestations_data = get_prestations()
+    
+    prompt = f"""Analysez la question suivante et déterminez le domaine juridique et la prestation la plus pertinente.
 
 Question : {question}
 Type de client : {client_type}
 Degré d'urgence : {urgency}
 
-Options de domaines et prestations :
-{' '.join(options)}
+Voici les domaines et prestations disponibles avec leurs mots-clés associés :
+
+{json.dumps(prestations_data, indent=2)}
 
 Répondez au format JSON strict suivant :
 {{
-    "est_juridique": true/false,
-    "domaine": "nom du domaine juridique",
-    "prestation": "nom de la prestation",
-    "explication": "Brève explication de votre analyse",
+    "domaine": "nom_du_domaine",
+    "prestation": "nom_de_la_prestation",
+    "explication": "Brève explication de votre choix",
     "indice_confiance": 0.0 à 1.0
 }}
 """
 
-    responses = get_openai_response(prompt)
-    
-    results = []
-    for response in responses:
-        try:
-            result = json.loads(response)
-            results.append(result)
-        except json.JSONDecodeError:
-            logger.error("Erreur de décodage JSON dans la réponse de l'API")
-    
-    if not results:
+    response = client.chat.completions.create(
+        model="gpt-4",  # Utilisation de GPT-4
+        messages=[
+            {"role": "system", "content": "Vous êtes un assistant juridique spécialisé dans l'analyse de questions et la recommandation de prestations juridiques."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3,
+        max_tokens=500
+    )
+
+    try:
+        result = json.loads(response.choices[0].message.content)
+        domain = result['domaine']
+        prestation = result['prestation']
+        confidence = result['indice_confiance']
+        is_relevant = domain in prestations_data and prestation in prestations_data[domain]['prestations']
+        
+        return domain, prestation, confidence, is_relevant
+    except (json.JSONDecodeError, KeyError):
+        logger.error("Erreur dans l'analyse de la réponse de l'API")
         return "", "", 0.0, False
 
-    # Calcul de la cohérence des réponses
-    is_legal_count = Counter(r['est_juridique'] for r in results)
-    domains = Counter(r['domaine'] for r in results if r['est_juridique'])
-    prestations_count = Counter(r['prestation'] for r in results if r['est_juridique'])
-    
-    is_legal = is_legal_count[True] > is_legal_count[False]
-    domain = domains.most_common(1)[0][0] if domains else ""
-    service = prestations_count.most_common(1)[0][0] if prestations_count else ""
-    
-    # Calcul de l'indice de confiance
-    consistency = (is_legal_count[is_legal] / len(results) +
-                   (domains[domain] / len(results) if domain else 0) +
-                   (prestations_count[service] / len(results) if service else 0)) / 3
-    
-    avg_confidence = sum(r['indice_confiance'] for r in results) / len(results)
-    
-    final_confidence = (consistency + avg_confidence) / 2
-    
-    is_relevant = is_legal and domain in prestations and service in prestations[domain]
-    
-    return domain, service, final_confidence, is_relevant
+# Utilisation de la fonction
+domain, prestation, confidence, is_relevant = analyze_question(question, client_type, urgency)
 
 def check_response_relevance(response: str, options: list) -> bool:
     response_lower = response.lower()
