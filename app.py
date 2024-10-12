@@ -39,15 +39,11 @@ def apply_custom_css():
     """, unsafe_allow_html=True)
 
 # Configuration du client OpenAI
-try:
-    OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-    if not OPENAI_API_KEY:
-        st.error("OPENAI_API_KEY n'est pas défini dans les secrets Streamlit.")
-        st.stop()
-    client = OpenAI(api_key=OPENAI_API_KEY)
-except Exception as e:
-    st.error(f"Erreur lors de la configuration du client OpenAI : {str(e)}")
-    st.stop()
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY n'est pas défini dans les variables d'environnement")
+
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Chargement des modules
 def load_py_module(file_path: str, module_name: str):
