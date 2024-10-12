@@ -34,22 +34,6 @@ def apply_custom_css():
         </style>
     """, unsafe_allow_html=True)
 
-
-try:
-    import tiktoken
-    TIKTOKEN_AVAILABLE = True
-except ImportError:
-    TIKTOKEN_AVAILABLE = False
-    st.warning("Le module tiktoken n'est pas installé. Le comptage des tokens sera moins précis.")
-
-def count_tokens(text: str, model: str = "gpt-3.5-turbo") -> int:
-    if TIKTOKEN_AVAILABLE:
-        encoding = tiktoken.encoding_for_model(model)
-        return len(encoding.encode(text))
-    else:
-        # Méthode de repli simple si tiktoken n'est pas disponible
-        return len(text.split())
-
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -71,6 +55,7 @@ def load_py_module(file_path: str, module_name: str):
     except Exception as e:
         logger.error(f"Erreur lors du chargement du module {module_name}: {e}")
         return None
+
 # Chargement des modules personnalisés
 prestations_module = load_py_module('./prestations.py', 'prestations')
 instructions_module = load_py_module('./chatbot-instructions.py', 'consignes_chatbot')
@@ -80,10 +65,9 @@ prestations = prestations_module.get_prestations() if prestations_module else {}
 instructions = instructions_module.get_chatbot_instructions() if instructions_module else ""
 
 # Fonction pour obtenir une réponse de l'API OpenAI
-def get_openai_response(prompt: str, model: str = "gpt-3.5-turbo", num_iterations: int = 3) -> Tuple[list, int]:
+def get_openai_response(prompt: str, model: str = "gpt-3.5-turbo", num_iterations: int = 3) -> list:
     try:
         responses = []
-        total_tokens = 0
         for _ in range(num_iterations):
             response = client.chat.completions.create(
                 model=model,
@@ -96,16 +80,13 @@ def get_openai_response(prompt: str, model: str = "gpt-3.5-turbo", num_iteration
             )
             content = response.choices[0].message.content.strip()
             responses.append(content)
-            total_tokens += response.usage.total_tokens
         
-        logger.info(f"Nombre total de tokens utilisés : {total_tokens}")
-        
-        return responses, total_tokens
+        return responses
     except Exception as e:
         logger.error(f"Erreur lors de l'appel à l'API OpenAI: {e}")
         raise
 
-def analyze_question(question: str, client_type: str, urgency: str) -> Tuple[str, str, float, bool, int]:
+def analyze_question(question: str, client_type: str, urgency: str) -> Tuple[str, str, float, bool]:
     options = [f"{domaine}: {', '.join(prestations_domaine.keys())}" for domaine, prestations_domaine in prestations.items()]
     prompt = f"""Analysez la question suivante et déterminez si elle concerne un problème juridique. Si c'est le cas, identifiez le domaine juridique et la prestation la plus pertinente.
 
@@ -126,7 +107,7 @@ Répondez au format JSON strict suivant :
 }}
 """
 
-    responses, tokens_used = get_openai_response(prompt)
+    responses = get_openai_response(prompt)
     
     results = []
     for response in responses:
@@ -137,7 +118,7 @@ Répondez au format JSON strict suivant :
             logger.error("Erreur de décodage JSON dans la réponse de l'API")
     
     if not results:
-        return "", "", 0.0, False, tokens_used
+        return "", "", 0.0, False
 
     # Calcul de la cohérence des réponses
     is_legal_count = Counter(r['est_juridique'] for r in results)
@@ -159,7 +140,7 @@ Répondez au format JSON strict suivant :
     
     is_relevant = is_legal and domain in prestations and service in prestations[domain]
     
-    return domain, service, final_confidence, is_relevant, tokens_used
+    return domain, service, final_confidence, is_relevant
 
 def check_response_relevance(response: str, options: list) -> bool:
     response_lower = response.lower()
@@ -207,7 +188,7 @@ def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int
         logger.exception(f"Erreur dans calculate_estimate: {str(e)}")
         raise
 
-def get_detailed_analysis(question: str, client_type: str, urgency: str, domaine: str, prestation: str) -> Tuple[str, Dict[str, Any], str, int]:
+def get_detailed_analysis(question: str, client_type: str, urgency: str, domaine: str, prestation: str) -> Tuple[str, Dict[str, Any], str]:
     prompt = f"""En tant qu'assistant juridique virtuel pour View Avocats, analysez la question suivante et expliquez votre raisonnement pour le choix du domaine juridique et de la prestation.
 
 Question : {question}
@@ -230,7 +211,7 @@ Listez les sources d'information utilisées pour cette analyse, si applicable.
 Assurez-vous que chaque partie est clairement séparée et que le JSON dans la partie 2 est valide et strict."""
 
     try:
-        responses, tokens_used = get_openai_response(prompt)
+        responses = get_openai_response(prompt)
         response = responses[0] if responses else ""
         logger.info(f"Réponse brute de l'API : {response}")
 
@@ -265,13 +246,13 @@ Assurez-vous que chaque partie est clairement séparée et que le JSON dans la p
         
         sources = parts[2] if len(parts) > 2 else "Aucune source spécifique mentionnée."
 
-        return analysis, elements_used, sources, tokens_used
+        return analysis, elements_used, sources
     except Exception as e:
         logger.exception(f"Erreur lors de l'analyse détaillée : {e}")
         return "Une erreur s'est produite lors de l'analyse.", {
             "domaine": {"nom": domaine, "description": "Erreur dans l'analyse"},
             "prestation": {"nom": prestation, "description": "Erreur dans l'analyse"}
-        }, "Non disponible en raison d'une erreur.", 0
+        }, "Non disponible en raison d'une erreur."
 
 def display_loading_animation():
     return st.markdown("""
@@ -302,9 +283,9 @@ def main():
                     display_loading_animation()
                 
                 # Effectuer toutes les analyses et calculs
-                domaine, prestation, confidence, is_relevant, tokens_used_analysis = analyze_question(question, client_type, urgency)
+                domaine, prestation, confidence, is_relevant = analyze_question(question, client_type, urgency)
                 estimation_basse, estimation_haute, calcul_details, tarifs_utilises = calculate_estimate(domaine, prestation, urgency)
-                detailed_analysis, elements_used, sources, tokens_used_detailed = get_detailed_analysis(question, client_type, urgency, domaine, prestation)
+                detailed_analysis, elements_used, sources = get_detailed_analysis(question, client_type, urgency, domaine, prestation)
 
                 # Une fois que tout est prêt, supprimer l'animation de chargement
                 loading_placeholder.empty()
@@ -349,11 +330,6 @@ def main():
                 if sources and sources != "Aucune source spécifique mentionnée.":
                     st.subheader("Sources d'information")
                     st.write(sources)
-
-                st.subheader("Utilisation des tokens")
-                st.write(f"Tokens utilisés pour l'analyse initiale : {tokens_used_analysis}")
-                st.write(f"Tokens utilisés pour l'analyse détaillée : {tokens_used_detailed}")
-                st.write(f"Total des tokens utilisés : {tokens_used_analysis + tokens_used_detailed}")
 
                 st.markdown("---")
                 st.markdown("### 💡 Alternative Recommandée")
