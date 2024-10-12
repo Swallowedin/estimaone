@@ -64,27 +64,7 @@ instructions_module = load_py_module('./chatbot-instructions.py', 'consignes_cha
 prestations = prestations_module.get_prestations() if prestations_module else {}
 instructions = instructions_module.get_chatbot_instructions() if instructions_module else ""
 
-# Fonction pour obtenir une réponse de l'API OpenAI
-def get_openai_response(prompt: str, model: str = "gpt-3.5-turbo", num_iterations: int = 3) -> list:
-    try:
-        responses = []
-        for _ in range(num_iterations):
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": instructions},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-                max_tokens=4000
-            )
-            content = response.choices[0].message.content.strip()
-            responses.append(content)
-        
-        return responses
-    except Exception as e:
-        logger.error(f"Erreur lors de l'appel à l'API OpenAI: {e}")
-        raise
+
 
 def analyze_question(question: str, client_type: str, urgency: str) -> Tuple[str, str, float, bool]:
     options = [f"{domaine}: {', '.join(prestations_domaine.keys())}" for domaine, prestations_domaine in prestations.items()]
@@ -107,40 +87,27 @@ Répondez au format JSON strict suivant :
 }}
 """
 
-    responses = get_openai_response(prompt)
-    
-    results = []
-    for response in responses:
-        try:
-            result = json.loads(response)
-            results.append(result)
-        except json.JSONDecodeError:
-            logger.error("Erreur de décodage JSON dans la réponse de l'API")
-    
-    if not results:
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",  # Utilisation de GPT-4
+            messages=[
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=500
+        )
+        result = json.loads(response.choices[0].message.content)
+        
+        domain = result['domaine']
+        service = result['prestation']
+        confidence = result['indice_confiance']
+        is_relevant = result['est_juridique'] and domain in prestations and service in prestations[domain]
+        
+        return domain, service, confidence, is_relevant
+    except Exception as e:
+        logger.error(f"Erreur lors de l'analyse de la question: {e}")
         return "", "", 0.0, False
-
-    # Calcul de la cohérence des réponses
-    is_legal_count = Counter(r['est_juridique'] for r in results)
-    domains = Counter(r['domaine'] for r in results if r['est_juridique'])
-    prestations_count = Counter(r['prestation'] for r in results if r['est_juridique'])
-    
-    is_legal = is_legal_count[True] > is_legal_count[False]
-    domain = domains.most_common(1)[0][0] if domains else ""
-    service = prestations_count.most_common(1)[0][0] if prestations_count else ""
-    
-    # Calcul de l'indice de confiance
-    consistency = (is_legal_count[is_legal] / len(results) +
-                   (domains[domain] / len(results) if domain else 0) +
-                   (prestations_count[service] / len(results) if service else 0)) / 3
-    
-    avg_confidence = sum(r['indice_confiance'] for r in results) / len(results)
-    
-    final_confidence = (consistency + avg_confidence) / 2
-    
-    is_relevant = is_legal and domain in prestations and service in prestations[domain]
-    
-    return domain, service, final_confidence, is_relevant
 
 def check_response_relevance(response: str, options: list) -> bool:
     response_lower = response.lower()
