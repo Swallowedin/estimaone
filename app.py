@@ -258,7 +258,6 @@ def main():
     client_type = st.selectbox("Vous êtes :", ("Particulier", "Entreprise"))
     urgency = st.selectbox("Degré d'urgence :", ("Normal", "Urgent"))
 
-    # Exemple de cas
     exemple_cas = """Exemple : Mon voisin a construit une extension de sa maison qui empiète de 50 cm sur mon terrain. J'ai essayé de lui en parler à l'amiable, mais il refuse de reconnaître le problème. Je souhaite connaître mes droits et les démarches possibles pour résoudre cette situation, si possible sans aller jusqu'au procès."""
 
     question = st.text_area(
@@ -274,7 +273,6 @@ def main():
                 with loading_placeholder:
                     display_loading_animation()
                 
-                # Effectuer l'analyse avec GPT-4
                 domaine, prestation, confidence, is_relevant = analyze_question(question, client_type, urgency)
                 
                 if not domaine or not prestation:
@@ -292,23 +290,38 @@ def main():
 
                 detailed_analysis, elements_used, sources = get_detailed_analysis(question, client_type, urgency, domaine, prestation)
 
-                # Une fois que tout est prêt, supprimer l'animation de chargement
                 loading_placeholder.empty()
 
-                # Afficher les résultats
                 st.success("Analyse terminée. Voici votre estimation :")
                 
-                # Mise en valeur de l'estimation
-                st.markdown(f"""
-                <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
-                    <h2 style="color: #1f618d;">Forfait estimé</h2>
-                    <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
-                        <span style="color: #e74c3c;">{forfait} €HT</span>
-                    </p>
-                    <p style="font-style: italic;">Domaine : {domaine_label}</p>
-                    <p style="font-style: italic;">Prestation : {prestation_label}</p>
-                </div>
-                """, unsafe_allow_html=True)
+                # Vérifier si la prestation recommandée est la consultation initiale
+                if prestation == "consultation_initiale":
+                    st.warning("Nous recommandons une consultation détaillée pour votre cas.")
+                    consultation_detaillee = prestations[domaine]['prestations'].get('consultation_juridique_et_reglementaire', {})
+                    if consultation_detaillee:
+                        st.markdown(f"""
+                        <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
+                            <h2 style="color: #1f618d;">Forfait recommandé : Consultation détaillée</h2>
+                            <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
+                                <span style="color: #e74c3c;">{consultation_detaillee['tarif']} €HT</span>
+                            </p>
+                            <p style="font-style: italic;">Domaine : {domaine_label}</p>
+                            <p style="font-style: italic;">Prestation : {consultation_detaillee['label']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        st.error("Désolé, nous n'avons pas pu trouver les détails de la consultation détaillée.")
+                else:
+                    st.markdown(f"""
+                    <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h2 style="color: #1f618d;">Forfait estimé</h2>
+                        <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
+                            <span style="color: #e74c3c;">{forfait} €HT</span>
+                        </p>
+                        <p style="font-style: italic;">Domaine : {domaine_label}</p>
+                        <p style="font-style: italic;">Prestation : {prestation_label}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
 
                 st.markdown("---")
 
@@ -345,7 +358,7 @@ def main():
 
                 st.markdown("---")
                 st.markdown("### 💡 Alternative Recommandée")
-                st.info("**Consultation initiale d'une heure** - Tarif fixe : 200 € HT")
+                st.info("**Consultation initiale d'une heure** - Tarif fixe : 100 € HT")
 
             except Exception as e:
                 st.error(f"Une erreur s'est produite : {str(e)}")
