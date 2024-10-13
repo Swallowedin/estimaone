@@ -358,7 +358,7 @@ def main():
 
                 st.markdown("---")
                 st.markdown("### 💡 Alternative Recommandée")
-                st.info("**Consultation initiale d'une heure** - Tarif fixe : 100 € HT")
+                st.info("**Consultation initiale d'une heure** - Tarif fixe : 200 € HT")
 
             except Exception as e:
                 st.error(f"Une erreur s'est produite : {str(e)}")
