@@ -845,7 +845,7 @@ def get_prestations():
                 }
             }
         },
-        "droit_propriété": {
+        "droit_de_la_propriété": {
             "label": "Droit de la propriété",
             "prestations": {
                 "trouble_anormal_voisinage": {
