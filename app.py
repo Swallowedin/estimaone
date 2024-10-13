@@ -252,10 +252,18 @@ def main():
 
     client_type = st.selectbox("Vous êtes :", ("Particulier", "Entreprise"))
     urgency = st.selectbox("Degré d'urgence :", ("Normal", "Urgent"))
-    question = st.text_area("Expliquez brièvement votre cas, notre intelligence artificielle s'occupe du reste !", height=150)
+
+    # Exemple de cas
+    exemple_cas = """Exemple : Je suis propriétaire d'un local commercial et je souhaite rédiger un bail pour un nouveau locataire qui va y ouvrir un restaurant. Le bail sera d'une durée de 9 ans. J'ai besoin d'aide pour rédiger ce contrat en respectant toutes les obligations légales."""
+
+    question = st.text_area(
+        "Expliquez brièvement votre cas, notre intelligence artificielle s'occupe du reste !",
+        height=150,
+        placeholder=exemple_cas
+    )
 
     if st.button("Obtenir une estimation grâce à l'intelligence artificielle"):
-        if question:
+        if question and question != exemple_cas:
             try:
                 loading_placeholder = st.empty()
                 with loading_placeholder:
@@ -268,7 +276,7 @@ def main():
                     st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
                     return
 
-                forfait, _, calcul_details, tarifs_utilises = calculate_estimate(domaine, prestation, urgency)
+                forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(domaine, prestation, urgency)
                 
                 if forfait is None:
                     st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
@@ -292,8 +300,8 @@ def main():
                     <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
                         <span style="color: #e74c3c;">{forfait} €HT</span>
                     </p>
-                    <p style="font-style: italic;">Domaine : {domaine}</p>
-                    <p style="font-style: italic;">Prestation : {prestation}</p>
+                    <p style="font-style: italic;">Domaine : {domaine_label}</p>
+                    <p style="font-style: italic;">Prestation : {prestation_label}</p>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -318,6 +326,8 @@ def main():
                 expander = st.expander("Voir les éléments spécifiques pris en compte")
                 with expander:
                     if isinstance(elements_used, dict) and "domaine" in elements_used and "prestation" in elements_used:
+                        elements_used["domaine"]["nom"] = domaine_label
+                        elements_used["prestation"]["nom"] = prestation_label
                         st.json(elements_used)
                     else:
                         st.warning("Les éléments spécifiques n'ont pas pu être analysés de manière optimale.")
@@ -336,7 +346,7 @@ def main():
                 st.error(f"Une erreur s'est produite : {str(e)}")
                 logger.exception("Erreur dans le processus d'estimation")
         else:
-            st.warning("Veuillez décrire votre cas avant de demander une estimation.")
+            st.warning("Veuillez décrire votre cas avant de demander une estimation. N'utilisez pas l'exemple fourni tel quel.")
 
     st.markdown("---")
     st.write("© 2024 View Avocats. Tous droits réservés.")
