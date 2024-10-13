@@ -845,15 +845,15 @@ def get_prestations():
                 }
             }
         },
-        "droit_de_la_propriété": {
-            "label": "Droit de la propriété",
+        "droit_immobilier": {
+            "label": "Droit immobilier",
             "prestations": {
                 "trouble_anormal_voisinage": {
                     "label": "Trouble anormal de voisinage",
                     "tarif": 1500,
                     "definition": "Gestion des litiges entre voisins en raison de nuisances ou de bruit anormaux."
                 },
-                "droit_propriété_immobilière": {
+                "droit_de_la_propriété": {
                     "label": "Droit de la propriété",
                     "tarif": 2200,
                     "definition": "Assistance juridique en matière de litiges ayant pour origine le non respect de la propriété privée."
