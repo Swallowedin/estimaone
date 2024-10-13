@@ -182,11 +182,19 @@ Listez les sources d'information utilisées pour cette analyse, si applicable.
 Assurez-vous que chaque partie est clairement séparée et que le JSON dans la partie 2 est valide et strict."""
 
     try:
-        responses = get_openai_response(prompt)
-        response = responses[0] if responses else ""
-        logger.info(f"Réponse brute de l'API : {response}")
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=1000
+        )
+        content = response.choices[0].message.content.strip()
+        logger.info(f"Réponse brute de l'API : {content}")
 
-        parts = response.split('\n\n')
+        parts = content.split('\n\n')
         
         analysis = parts[0] if len(parts) > 0 else "Analyse non disponible."
         
