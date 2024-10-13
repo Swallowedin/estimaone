@@ -325,7 +325,7 @@ def main():
                 st.markdown("### 💡 Recommandations")
                 st.success("""
                 **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
-                nous vous recommandons de prendre rendez-vous pour une consultation initiale. Cela nous permettra de :
+                nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
                 - Évaluer précisément la complexité de votre cas
                 - Vous fournir des conseils juridiques adaptés
                 - Élaborer une stratégie sur mesure pour votre situation
