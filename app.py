@@ -253,7 +253,7 @@ def display_loading_animation():
 def main():
     apply_custom_css()
     
-    st.title("🏛️ Estim'IA by View Avocats - Obtenez une estimation grâce à l'IA")
+    st.title("🏛️ Estim'IA by View Avocats\nObtenez une estimation grâce à l'IA")
 
     client_type = st.selectbox("Vous êtes :", ("Particulier", "Entreprise"))
     urgency = st.selectbox("Degré d'urgence :", ("Normal", "Urgent"))
