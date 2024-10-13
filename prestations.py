@@ -170,7 +170,7 @@ def get_prestations():
             "prestations": {
                 "creation_entreprise": {
                     "label": "Création d'entreprise",
-                    "tarif": 3000,
+                    "tarif": 800,
                     "definition": "Accompagnement juridique complet pour la création d'une nouvelle entreprise."
                 },
                 "redaction_statuts_societe": {
@@ -685,7 +685,7 @@ def get_prestations():
             "prestations": {
                 "creation_societe": {
                     "label": "Création de société",
-                    "tarif": 1500,
+                    "tarif": 800,
                     "definition": "Assistance juridique pour la création d'une société commerciale."
                 },
                 "secretariat_juridique": {
