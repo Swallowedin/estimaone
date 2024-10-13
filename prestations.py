@@ -8,6 +8,11 @@ def get_prestations():
                     "tarif": 800,
                     "definition": "Élaboration des termes et conditions régissant les relations entre une entreprise et ses clients."
                 },
+                "droit_de_la-propriété": {
+                    "label": "Droit de la propriété",
+                    "tarif": 800,
+                    "definition": "Litiges et conseils en droit de la propriété et copropriété."
+                },
                 "redaction_contrat_mise_disposition_prestations_services_associes": {
                     "label": "Rédaction de contrat de mise à disposition avec prestations de services associées",
                     "tarif": 1500,
