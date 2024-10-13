@@ -257,7 +257,7 @@ def main():
     urgency = st.selectbox("Degré d'urgence :", ("Normal", "Urgent"))
 
     # Exemple de cas
-    exemple_cas = """Exemple : Je suis propriétaire d'un local commercial et je souhaite rédiger un bail pour un nouveau locataire qui va y ouvrir un restaurant. Le bail sera d'une durée de 9 ans. J'ai besoin d'aide pour rédiger ce contrat en respectant toutes les obligations légales."""
+    exemple_cas = """Exemple : Mon voisin a construit une extension de sa maison qui empiète de 50 cm sur mon terrain. J'ai essayé de lui en parler à l'amiable, mais il refuse de reconnaître le problème. Je souhaite connaître mes droits et les démarches possibles pour résoudre cette situation, si possible sans aller jusqu'au procès."""
 
     question = st.text_area(
         "Expliquez brièvement votre cas, notre intelligence artificielle s'occupe du reste !",
