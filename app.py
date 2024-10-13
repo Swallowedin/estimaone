@@ -116,25 +116,25 @@ def check_response_relevance(response: str, options: list) -> bool:
     response_lower = response.lower()
     return any(option.lower().split(':')[0].strip() in response_lower for option in options)
 
-def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int, int, list, Dict[str, Any]]:
+def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int, int, list, Dict[str, Any], str, str]:
     try:
         # Récupérer les prestations pour le domaine spécifié
         domaine_info = prestations.get(domaine)
         if not domaine_info:
             logger.error(f"Domaine non trouvé : {domaine}")
-            return None, None, [f"Aucun domaine trouvé pour : {domaine}"], {}
+            return None, None, [f"Aucun domaine trouvé pour : {domaine}"], {}, "", ""
 
         prestations_domaine = domaine_info.get('prestations', {})
         prestation_info = prestations_domaine.get(prestation)
         if not prestation_info:
             logger.error(f"Prestation non trouvée : {prestation} dans le domaine {domaine}")
             available_prestations = ", ".join(prestations_domaine.keys())
-            return None, None, [f"Prestation '{prestation}' non trouvée dans le domaine '{domaine}'. Prestations disponibles : {available_prestations}"], {}
+            return None, None, [f"Prestation '{prestation}' non trouvée dans le domaine '{domaine}'. Prestations disponibles : {available_prestations}"], {}, "", ""
 
         forfait = prestation_info.get('tarif')
         if not forfait:
             logger.error(f"Aucun tarif défini pour la prestation : {prestation}")
-            return None, None, [f"Aucun forfait défini pour la prestation : {prestation}"], {}
+            return None, None, [f"Aucun forfait défini pour la prestation : {prestation}"], {}, "", ""
 
         calcul_details = [
             f"Forfait pour la prestation '{prestation_info['label']}': {forfait} €"
@@ -154,10 +154,13 @@ def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int
             "facteur_urgence": facteur_urgence if urgency == "Urgent" else "Non appliqué"
         }
 
-        return forfait, forfait, calcul_details, tarifs_utilises
+        domaine_label = domaine_info['label']
+        prestation_label = prestation_info['label']
+
+        return forfait, forfait, calcul_details, tarifs_utilises, domaine_label, prestation_label
     except Exception as e:
         logger.exception(f"Erreur dans calculate_estimate: {str(e)}")
-        return None, None, [f"Erreur lors du calcul de l'estimation : {str(e)}"], {}
+        return None, None, [f"Erreur lors du calcul de l'estimation : {str(e)}"], {}, "", ""
 
 def get_detailed_analysis(question: str, client_type: str, urgency: str, domaine: str, prestation: str) -> Tuple[str, Dict[str, Any], str]:
     prompt = f"""En tant qu'assistant juridique virtuel pour View Avocats, analysez la question suivante et expliquez votre raisonnement pour le choix du domaine juridique et de la prestation.
