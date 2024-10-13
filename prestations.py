@@ -8,7 +8,7 @@ def get_prestations():
                     "tarif": 800,
                     "definition": "Élaboration des termes et conditions régissant les relations entre une entreprise et ses clients."
                 },
-                "droit_de_la-propriété": {
+                "droit_de_la_propriété": {
                     "label": "Droit de la propriété",
                     "tarif": 800,
                     "definition": "Litiges et conseils en droit de la propriété et copropriété."
