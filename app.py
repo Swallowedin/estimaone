@@ -140,8 +140,10 @@ def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int
             f"Forfait pour la prestation '{prestation_info['label']}': {forfait} €"
         ]
 
+        # Définir directement le facteur d'urgence ici
+        facteur_urgence = 1.5  # Vous pouvez ajuster cette valeur selon vos besoins
+
         if urgency == "Urgent":
-            facteur_urgence = get_facteur_urgence()
             forfait_urgent = round(forfait * facteur_urgence)
             calcul_details.extend([
                 f"Facteur d'urgence appliqué: x{facteur_urgence}",
