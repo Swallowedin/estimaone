@@ -45,7 +45,7 @@ def get_prestations():
                 },
                 "redaction_statuts_societe": {
                     "label": "Rédaction des statuts de société",
-                    "tarif": 800,
+                    "tarif": 600,
                     "definition": "Élaboration du document juridique fondamental définissant la structure et le fonctionnement d'une société."
                 },
                 "depot_marque": {
@@ -170,12 +170,12 @@ def get_prestations():
             "prestations": {
                 "creation_entreprise": {
                     "label": "Création d'entreprise",
-                    "tarif": 800,
+                    "tarif": 600,
                     "definition": "Accompagnement juridique complet pour la création d'une nouvelle entreprise."
                 },
                 "redaction_statuts_societe": {
                     "label": "Rédaction des statuts de société",
-                    "tarif": 1200,
+                    "tarif": 600,
                     "definition": "Élaboration du document juridique fondamental définissant la structure et le fonctionnement d'une société."
                 },
                 "fusion_acquisition": {
@@ -685,7 +685,7 @@ def get_prestations():
             "prestations": {
                 "creation_societe": {
                     "label": "Création de société",
-                    "tarif": 800,
+                    "tarif": 600,
                     "definition": "Assistance juridique pour la création d'une société commerciale."
                 },
                 "secretariat_juridique": {
