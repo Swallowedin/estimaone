@@ -8,11 +8,6 @@ def get_prestations():
                     "tarif": 800,
                     "definition": "Élaboration des termes et conditions régissant les relations entre une entreprise et ses clients."
                 },
-                "droit_de_la_propriété": {
-                    "label": "Droit de la propriété",
-                    "tarif": 800,
-                    "definition": "Litiges et conseils en droit de la propriété et copropriété."
-                },
                 "redaction_contrat_mise_disposition_prestations_services_associes": {
                     "label": "Rédaction de contrat de mise à disposition avec prestations de services associées",
                     "tarif": 1500,
@@ -847,6 +842,36 @@ def get_prestations():
                     "label": "Contentieux des étrangers",
                     "tarif": 1900,
                     "definition": "Gestion des litiges liés au droit des étrangers, autorisation de séjour, OQTF, etc."
+                }
+            }
+        },
+        "droit_propriété": {
+            "label": "Droit de la propriété",
+            "prestations": {
+                "trouble_anormal_voisinage": {
+                    "label": "Trouble anormal de voisinage",
+                    "tarif": 1500,
+                    "definition": "Gestion des litiges entre voisins en raison de nuisances ou de bruit anormaux."
+                },
+                "droit_propriété_immobilière": {
+                    "label": "Droit de la propriété",
+                    "tarif": 2200,
+                    "definition": "Assistance juridique en matière de litiges ayant pour origine le non respect de la propriété privée."
+                },
+                "droit_copropriété": {
+                    "label": "Droit de la copropriété",
+                    "tarif": 2000,
+                    "definition": "Gestion des litiges et conseil en droit de la copropriété."
+                },
+                "création_société_civile_immobilière": {
+                    "label": "Création de statuts de société SCI",
+                    "tarif": 1000,
+                    "definition": "Accompagnement dans la création et la rédaction des statuts d'une société civile immobilière (SCI)."
+                },
+                "accompagnement_expertise_judiciaire": {
+                    "label": "accompagnement lors d'une expertise judiciaire",
+                    "tarif": 2500,
+                    "definition": "Accompagnement et défense dans le cadre d'une procédure d'expertise judiciaire."
                 }
             }
         },
