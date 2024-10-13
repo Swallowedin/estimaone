@@ -25,7 +25,7 @@ def get_prestations():
                 },
                 "creation_entreprise": {
                     "label": "Création d'entreprise",
-                    "tarif": 3000,
+                    "tarif": 800,
                     "definition": "Accompagnement juridique complet pour la création d'une nouvelle entreprise."
                 },
                 "redaction_contrat_simple": {
