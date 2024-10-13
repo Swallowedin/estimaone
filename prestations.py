@@ -45,7 +45,7 @@ def get_prestations():
                 },
                 "redaction_statuts_societe": {
                     "label": "Rédaction des statuts de société",
-                    "tarif": 1200,
+                    "tarif": 800,
                     "definition": "Élaboration du document juridique fondamental définissant la structure et le fonctionnement d'une société."
                 },
                 "depot_marque": {
