@@ -273,7 +273,6 @@ def main():
                 with loading_placeholder:
                     display_loading_animation()
                 
-                # Effectuer l'analyse avec GPT-4
                 domaine, prestation, confidence, is_relevant = analyze_question(question, client_type, urgency)
                 
                 if not domaine or not prestation:
@@ -295,7 +294,6 @@ def main():
 
                 st.success("Analyse terminée. Voici votre estimation :")
                 
-                # Affichage du forfait estimé avec la mention "à partir de"
                 st.markdown(f"""
                 <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
                     <h2 style="color: #1f618d;">Forfait estimé</h2>
@@ -307,7 +305,6 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
 
-                # Avertissement équilibré
                 st.info("""
                 📌 Note importante : Cette estimation est fournie à titre indicatif et peut varier en fonction de la complexité spécifique de votre situation. 
                 Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas.
@@ -323,6 +320,18 @@ def main():
                     st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
                 elif not is_relevant:
                     st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
+
+                # Nouvel emplacement pour les recommandations
+                st.markdown("### 💡 Recommandations")
+                st.success("""
+                **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
+                nous vous recommandons de prendre rendez-vous pour une consultation initiale. Cela nous permettra de :
+                - Évaluer précisément la complexité de votre cas
+                - Vous fournir des conseils juridiques adaptés
+                - Élaborer une stratégie sur mesure pour votre situation
+                """)
+
+                st.markdown("---")
 
                 st.subheader("Détails du forfait")
                 for detail in calcul_details:
@@ -345,10 +354,6 @@ def main():
                     expander = st.expander("Voir les sources d'information")
                     with expander:
                         st.write(sources)
-
-                st.markdown("---")
-                st.markdown("### 💡 Prochaine étape recommandée")
-                st.success("**Consultation initiale** - Pour une analyse approfondie de votre situation et des conseils personnalisés, nous vous recommandons de prendre rendez-vous pour une consultation initiale.")
 
             except Exception as e:
                 st.error(f"Une erreur s'est produite : {str(e)}")
