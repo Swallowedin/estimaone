@@ -845,8 +845,8 @@ def get_prestations():
                 }
             }
         },
-        "droit_immobilier": {
-            "label": "Droit immobilier",
+        "droit_de_l'immobilier": {
+            "label": "Droit de l'immobilier",
             "prestations": {
                 "trouble_anormal_voisinage": {
                     "label": "Trouble anormal de voisinage",
