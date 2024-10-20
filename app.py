@@ -19,25 +19,19 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 # Configuration pour Google Sheets
-scopes = [
-    'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/drive'
-]
-
-# Chargement des credentials (assurez-vous que le chemin est correct)
-credentials = Credentials.from_service_account_file(
-    'path/to/your/service_account.json',
-    scopes=scopes
-)
+GOOGLE_SHEETS_CREDENTIALS = json.loads(st.secrets["google_sheets_credentials"])
+GOOGLE_SHEETS_SPREADSHEET_ID = st.secrets["google_sheets_spreadsheet_id"]
 
 # Authentification et ouverture de la feuille de calcul
+scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
+credentials = Credentials.from_service_account_info(GOOGLE_SHEETS_CREDENTIALS, scopes=scopes)
 client = gspread.authorize(credentials)
-sheet = client.open('Estimations Estim\'IA').sheet1  # Assurez-vous que ce nom correspond à votre feuille
+sheet = client.open_by_key(GOOGLE_SHEETS_SPREADSHEET_ID).sheet1
 
 # Configuration du client OpenAI
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+OPENAI_API_KEY = st.secrets["openai_api_key"]
 if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY n'est pas défini dans les variables d'environnement")
+    raise ValueError("OPENAI_API_KEY n'est pas défini dans les secrets")
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -101,7 +95,7 @@ Répondez au format JSON strict suivant :
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": instructions},
                 {"role": "user", "content": prompt}
@@ -124,13 +118,8 @@ Répondez au format JSON strict suivant :
         logger.error(f"Erreur lors de l'analyse de la question: {e}")
         return "", "", 0.0, False
 
-def check_response_relevance(response: str, options: list) -> bool:
-    response_lower = response.lower()
-    return any(option.lower().split(':')[0].strip() in response_lower for option in options)
-
 def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int, int, list, Dict[str, Any], str, str]:
     try:
-        # Récupérer les prestations pour le domaine spécifié
         domaine_info = prestations.get(domaine)
         if not domaine_info:
             logger.error(f"Domaine non trouvé : {domaine}")
@@ -152,8 +141,7 @@ def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int
             f"Forfait pour la prestation '{prestation_info['label']}': {forfait} €"
         ]
 
-        # Définir directement le facteur d'urgence ici
-        facteur_urgence = 1.5  # Vous pouvez ajuster cette valeur selon vos besoins
+        facteur_urgence = 1.5
 
         if urgency == "Urgent":
             forfait_urgent = round(forfait * facteur_urgence)
@@ -200,7 +188,7 @@ Assurez-vous que chaque partie est clairement séparée et que le JSON dans la p
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": instructions},
                 {"role": "user", "content": prompt}
@@ -250,6 +238,30 @@ Assurez-vous que chaque partie est clairement séparée et que le JSON dans la p
             "prestation": {"nom": prestation, "description": "Erreur dans l'analyse"}
         }, "Non disponible en raison d'une erreur."
 
+def apply_custom_css():
+    st.markdown("""
+        <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            .stApp > header {
+                background-color: transparent;
+            }
+            .stApp {
+                margin-top: -80px;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .loading-icon {
+                animation: spin 1s linear infinite;
+                display: inline-block;
+                margin-right: 10px;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
 def display_loading_animation():
     return st.markdown("""
     <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
@@ -261,8 +273,8 @@ def display_loading_animation():
         <p>Votre estimation arrive dans quelques secondes !</p>
     </div>
     """, unsafe_allow_html=True)
-
-def main():
+  
+  def main():
     apply_custom_css()
     
     st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
