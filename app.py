@@ -6,6 +6,9 @@ import logging
 from typing import Tuple, Dict, Any
 import importlib.util
 from collections import Counter
+import requests
+import time
+import threading
 
 st.set_page_config(page_title="Estim'IA - Obtenez une estimation grâce à l'IA", page_icon="⚖️", layout="wide")
 
@@ -64,7 +67,14 @@ instructions_module = load_py_module('./chatbot-instructions.py', 'consignes_cha
 prestations = prestations_module.get_prestations() if prestations_module else {}
 instructions = instructions_module.get_chatbot_instructions() if instructions_module else ""
 
-
+def keep_alive():
+    while True:
+        try:
+            response = requests.get("https://estimaone.streamlit.app/")
+            logger.info(f"Keep-alive ping envoyé. Statut : {response.status_code}")
+        except Exception as e:
+            logger.error(f"Erreur lors de l'envoi du ping keep-alive : {str(e)}")
+        time.sleep(3600)  # Attendre 60 minutes avant le prochain ping
 
 def analyze_question(question: str, client_type: str, urgency: str) -> Tuple[str, str, float, bool]:
     options = [f"{domaine}: {', '.join(prestations_domaine['prestations'].keys())}" for domaine, prestations_domaine in prestations.items()]
