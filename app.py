@@ -9,37 +9,30 @@ from collections import Counter
 import requests
 import time
 import threading
-
-st.set_page_config(page_title="Estim'IA - Obtenez une estimation grâce à l'IA", page_icon="⚖️", layout="wide")
-
-# Fonction pour appliquer le CSS personnalisé
-def apply_custom_css():
-    st.markdown("""
-        <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            header {visibility: hidden;}
-            .stApp > header {
-                background-color: transparent;
-            }
-            .stApp {
-                margin-top: -80px;
-            }
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-            .loading-icon {
-                animation: spin 1s linear infinite;
-                display: inline-block;
-                margin-right: 10px;
-            }
-        </style>
-    """, unsafe_allow_html=True)
+from datetime import datetime
+import gspread
+from google.oauth2.service_account import Credentials
 
 # Configuration du logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# Configuration pour Google Sheets
+scopes = [
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive'
+]
+
+# Chargement des credentials (assurez-vous que le chemin est correct)
+credentials = Credentials.from_service_account_file(
+    'path/to/your/service_account.json',
+    scopes=scopes
+)
+
+# Authentification et ouverture de la feuille de calcul
+client = gspread.authorize(credentials)
+sheet = client.open('Estimations Estim\'IA').sheet1  # Assurez-vous que ce nom correspond à votre feuille
 
 # Configuration du client OpenAI
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -66,6 +59,15 @@ instructions_module = load_py_module('./chatbot-instructions.py', 'consignes_cha
 # Initialisation des variables globales
 prestations = prestations_module.get_prestations() if prestations_module else {}
 instructions = instructions_module.get_chatbot_instructions() if instructions_module else ""
+
+def save_estimation(question: str, domaine: str, prestation: str, forfait: int):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    row = [timestamp, question, domaine, prestation, forfait]
+    try:
+        sheet.append_row(row)
+        logger.info("Estimation enregistrée avec succès dans Google Sheets")
+    except Exception as e:
+        logger.error(f"Erreur lors de l'enregistrement de l'estimation : {str(e)}")
 
 def keep_alive():
     while True:
@@ -300,6 +302,9 @@ def main():
 
                 detailed_analysis, elements_used, sources = get_detailed_analysis(question, client_type, urgency, domaine, prestation)
 
+                # Enregistrement de l'estimation dans Google Sheets
+                save_estimation(question, domaine_label, prestation_label, forfait)
+
                 loading_placeholder.empty()
 
                 st.success("Analyse terminée. Voici votre estimation :")
@@ -331,7 +336,6 @@ def main():
                 elif not is_relevant:
                     st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
-                # Nouvel emplacement pour les recommandations
                 st.markdown("### 💡 Recommandations 🐶")
                 st.success("""
                 **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
