@@ -198,7 +198,7 @@ Assurez-vous que chaque partie est clairement séparée et que le JSON dans la p
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": instructions},
                 {"role": "user", "content": prompt}
