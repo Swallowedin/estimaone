@@ -322,7 +322,7 @@ def main():
                     st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
                 # Nouvel emplacement pour les recommandations
-                st.markdown("### 💡 Recommandations 🐶")
+                st.markdown("### 💡 Recommandations")
                 st.success("""
                 **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
                 nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
