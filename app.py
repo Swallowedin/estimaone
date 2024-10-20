@@ -273,8 +273,8 @@ def display_loading_animation():
         <p>Votre estimation arrive dans quelques secondes !</p>
     </div>
     """, unsafe_allow_html=True)
-  
-  def main():
+
+def main():
     apply_custom_css()
     
     st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
