@@ -6,32 +6,42 @@ import logging
 from typing import Tuple, Dict, Any
 import importlib.util
 from collections import Counter
-import requests
-import time
-import threading
-from datetime import datetime
-import gspread
-from google.oauth2.service_account import Credentials
+
+st.set_page_config(page_title="Estim'IA - Obtenez une estimation grâce à l'IA", page_icon="⚖️", layout="wide")
+
+# Fonction pour appliquer le CSS personnalisé
+def apply_custom_css():
+    st.markdown("""
+        <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            .stApp > header {
+                background-color: transparent;
+            }
+            .stApp {
+                margin-top: -80px;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .loading-icon {
+                animation: spin 1s linear infinite;
+                display: inline-block;
+                margin-right: 10px;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
 # Configuration du logging
-logging.basicConfig(level=logging.INFO, 
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Configuration pour Google Sheets
-GOOGLE_SHEETS_CREDENTIALS = json.loads(st.secrets["google_sheets_credentials"])
-GOOGLE_SHEETS_SPREADSHEET_ID = st.secrets["google_sheets_spreadsheet_id"]
-
-# Authentification et ouverture de la feuille de calcul
-scopes = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive']
-credentials = Credentials.from_service_account_info(GOOGLE_SHEETS_CREDENTIALS, scopes=scopes)
-client = gspread.authorize(credentials)
-sheet = client.open_by_key(GOOGLE_SHEETS_SPREADSHEET_ID).sheet1
-
 # Configuration du client OpenAI
-OPENAI_API_KEY = st.secrets["openai_api_key"]
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY n'est pas défini dans les secrets")
+    raise ValueError("OPENAI_API_KEY n'est pas défini dans les variables d'environnement")
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -54,23 +64,7 @@ instructions_module = load_py_module('./chatbot-instructions.py', 'consignes_cha
 prestations = prestations_module.get_prestations() if prestations_module else {}
 instructions = instructions_module.get_chatbot_instructions() if instructions_module else ""
 
-def save_estimation(question: str, domaine: str, prestation: str, forfait: int):
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    row = [timestamp, question, domaine, prestation, forfait]
-    try:
-        sheet.append_row(row)
-        logger.info("Estimation enregistrée avec succès dans Google Sheets")
-    except Exception as e:
-        logger.error(f"Erreur lors de l'enregistrement de l'estimation : {str(e)}")
 
-def keep_alive():
-    while True:
-        try:
-            response = requests.get("https://estimaone.streamlit.app/")
-            logger.info(f"Keep-alive ping envoyé. Statut : {response.status_code}")
-        except Exception as e:
-            logger.error(f"Erreur lors de l'envoi du ping keep-alive : {str(e)}")
-        time.sleep(3600)  # Attendre 60 minutes avant le prochain ping
 
 def analyze_question(question: str, client_type: str, urgency: str) -> Tuple[str, str, float, bool]:
     options = [f"{domaine}: {', '.join(prestations_domaine['prestations'].keys())}" for domaine, prestations_domaine in prestations.items()]
@@ -118,8 +112,13 @@ Répondez au format JSON strict suivant :
         logger.error(f"Erreur lors de l'analyse de la question: {e}")
         return "", "", 0.0, False
 
+def check_response_relevance(response: str, options: list) -> bool:
+    response_lower = response.lower()
+    return any(option.lower().split(':')[0].strip() in response_lower for option in options)
+
 def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int, int, list, Dict[str, Any], str, str]:
     try:
+        # Récupérer les prestations pour le domaine spécifié
         domaine_info = prestations.get(domaine)
         if not domaine_info:
             logger.error(f"Domaine non trouvé : {domaine}")
@@ -141,7 +140,8 @@ def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int
             f"Forfait pour la prestation '{prestation_info['label']}': {forfait} €"
         ]
 
-        facteur_urgence = 1.5
+        # Définir directement le facteur d'urgence ici
+        facteur_urgence = 1.5  # Vous pouvez ajuster cette valeur selon vos besoins
 
         if urgency == "Urgent":
             forfait_urgent = round(forfait * facteur_urgence)
@@ -188,7 +188,7 @@ Assurez-vous que chaque partie est clairement séparée et que le JSON dans la p
 
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": instructions},
                 {"role": "user", "content": prompt}
@@ -237,30 +237,6 @@ Assurez-vous que chaque partie est clairement séparée et que le JSON dans la p
             "domaine": {"nom": domaine, "description": "Erreur dans l'analyse"},
             "prestation": {"nom": prestation, "description": "Erreur dans l'analyse"}
         }, "Non disponible en raison d'une erreur."
-
-def apply_custom_css():
-    st.markdown("""
-        <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            header {visibility: hidden;}
-            .stApp > header {
-                background-color: transparent;
-            }
-            .stApp {
-                margin-top: -80px;
-            }
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-            .loading-icon {
-                animation: spin 1s linear infinite;
-                display: inline-block;
-                margin-right: 10px;
-            }
-        </style>
-    """, unsafe_allow_html=True)
 
 def display_loading_animation():
     return st.markdown("""
@@ -314,9 +290,6 @@ def main():
 
                 detailed_analysis, elements_used, sources = get_detailed_analysis(question, client_type, urgency, domaine, prestation)
 
-                # Enregistrement de l'estimation dans Google Sheets
-                save_estimation(question, domaine_label, prestation_label, forfait)
-
                 loading_placeholder.empty()
 
                 st.success("Analyse terminée. Voici votre estimation :")
@@ -348,6 +321,7 @@ def main():
                 elif not is_relevant:
                     st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
+                # Nouvel emplacement pour les recommandations
                 st.markdown("### 💡 Recommandations 🐶")
                 st.success("""
                 **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
