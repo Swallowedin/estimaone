@@ -3,11 +3,62 @@ import os
 from openai import OpenAI
 import json
 import logging
+from logging.handlers import RotatingFileHandler
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from typing import Tuple, Dict, Any
 import importlib.util
 from collections import Counter
+import time
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Ajout d'un handler pour écrire dans un fichier
+file_handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=5)
+file_handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 st.set_page_config(page_title="Estim'IA - Obtenez une estimation grâce à l'IA", page_icon="⚖️", layout="wide")
+
+# Fonction pour envoyer des emails
+def send_log_email(subject, body, to_email):
+    from_email = "votre_email@example.com"  # Remplacez par votre adresse email
+    password = os.getenv('EMAIL_PASSWORD')  # Utilisez une variable d'environnement pour le mot de passe
+
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:  # Ajustez selon votre fournisseur d'email
+            server.starttls()
+            server.login(from_email, password)
+            server.send_message(msg)
+        logger.info(f"Log email sent to {to_email}")
+    except Exception as e:
+        logger.error(f"Failed to send log email: {str(e)}")
+
+# Fonction pour journaliser les questions
+def log_question(question: str, client_type: str, urgency: str):
+    log_message = f"""
+Nouvelle question posée :
+  Client : {client_type}
+  Urgence : {urgency}
+  Question : {question}
+    """
+    logger.info(log_message)
+    
+    # Envoi de l'email
+    subject = "Nouvelle question posée sur Estim'IA"
+    to_email = "adresse_destinataire@example.com"  # Remplacez par l'adresse email souhaitée
+    send_log_email(subject, log_message, to_email)
 
 # Fonction pour appliquer le CSS personnalisé
 def apply_custom_css():
@@ -33,10 +84,6 @@ def apply_custom_css():
             }
         </style>
     """, unsafe_allow_html=True)
-
-# Configuration du logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Configuration du client OpenAI
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -255,6 +302,16 @@ def main():
     
     st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
 
+    # Initialisation du compteur de keep-alive dans la session state
+    if 'last_keep_alive' not in st.session_state:
+        st.session_state['last_keep_alive'] = time.time()
+
+    # Vérification et mise à jour du keep-alive
+    current_time = time.time()
+    if current_time - st.session_state['last_keep_alive'] > 3540:  # 59 minutes
+        st.session_state['last_keep_alive'] = current_time
+        st.experimental_rerun()
+
     client_type = st.selectbox("Vous êtes :", ("Particulier", "Entreprise"))
     urgency = st.selectbox("Degré d'urgence :", ("Normal", "Urgent"))
 
@@ -269,6 +326,9 @@ def main():
     if st.button("Obtenir une estimation grâce à l'intelligence artificielle"):
         if question and question != exemple_cas:
             try:
+                # Journalisation de la question
+                log_question(question, client_type, urgency)
+                
                 loading_placeholder = st.empty()
                 with loading_placeholder:
                     display_loading_animation()
@@ -321,7 +381,6 @@ def main():
                 elif not is_relevant:
                     st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
-                # Nouvel emplacement pour les recommandations
                 st.markdown("### 💡 Recommandations")
                 st.success("""
                 **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
@@ -362,6 +421,7 @@ def main():
             st.warning("Veuillez décrire votre cas avant de demander une estimation. N'utilisez pas l'exemple fourni tel quel.")
 
     st.markdown("---")
+    st.empty()  # Pour le keep-alive
     st.write("© 2024 View Avocats. Tous droits réservés.")
 
 if __name__ == "__main__":
