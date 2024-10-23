@@ -46,18 +46,34 @@ def send_log_email(subject, body, to_email):
         logger.error(f"Failed to send log email: {str(e)}")
 
 # Fonction pour journaliser les questions
-def log_question(question: str, client_type: str, urgency: str):
-    log_message = f"""
-Nouvelle question posée :
-  Client : {client_type}
-  Urgence : {urgency}
-  Question : {question}
+def log_question(question: str, client_type: str, urgency: str, estimation: dict = None):
     """
+    Journalise une question avec l'estimation si disponible
+    """
+    if estimation:
+        log_message = f"""
+Nouvelle question posée :
+Client : {client_type}
+Urgence : {urgency}
+Question : {question}
+
+Estimation : {estimation['forfait']}€ HT
+Domaine : {estimation['domaine']}
+Prestation : {estimation['prestation']}
+"""
+    else:
+        log_message = f"""
+Nouvelle question posée :
+Client : {client_type}
+Urgence : {urgency}
+Question : {question}
+"""
+    
     logger.info(log_message)
     
-    # Envoi de l'email
+    # Envoi de l'email avec les secrets Streamlit
     subject = "Nouvelle question posée sur Estim'IA"
-    to_email = os.getenv('EMAIL_TO')
+    to_email = st.secrets["EMAIL_TO"]
     send_log_email(subject, log_message, to_email)
 
 # Fonction pour appliquer le CSS personnalisé
@@ -326,9 +342,6 @@ def main():
     if st.button("Obtenir une estimation grâce à l'intelligence artificielle"):
         if question and question != exemple_cas:
             try:
-                # Journalisation de la question
-                log_question(question, client_type, urgency)
-                
                 loading_placeholder = st.empty()
                 with loading_placeholder:
                     display_loading_animation()
@@ -341,6 +354,17 @@ def main():
 
                 forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(domaine, prestation, urgency)
                 
+                # Ajout du logging avec l'estimation
+                if forfait is not None:
+                    estimation = {
+                        'forfait': forfait,
+                        'domaine': domaine_label,
+                        'prestation': prestation_label
+                    }
+                    log_question(question, client_type, urgency, estimation)
+                else:
+                    log_question(question, client_type, urgency)
+
                 if forfait is None:
                     st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
                     for detail in calcul_details:
