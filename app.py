@@ -27,8 +27,8 @@ st.set_page_config(page_title="Estim'IA - Obtenez une estimation grâce à l'IA"
 
 # Fonction pour envoyer des emails
 def send_log_email(subject, body, to_email):
-    from_email = "votre_email@example.com"  # Remplacez par votre adresse email
-    password = os.getenv('EMAIL_PASSWORD')  # Utilisez une variable d'environnement pour le mot de passe
+    from_email = os.getenv('EMAIL_FROM')
+    password = os.getenv('EMAIL_PASSWORD')
 
     msg = MIMEMultipart()
     msg['From'] = from_email
@@ -57,7 +57,7 @@ Nouvelle question posée :
     
     # Envoi de l'email
     subject = "Nouvelle question posée sur Estim'IA"
-    to_email = "adresse_destinataire@example.com"  # Remplacez par l'adresse email souhaitée
+    to_email = os.getenv('EMAIL_TO')
     send_log_email(subject, log_message, to_email)
 
 # Fonction pour appliquer le CSS personnalisé
