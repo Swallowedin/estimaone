@@ -53,12 +53,6 @@ class SimpleRateLimiter:
         st.session_state.requests.append(current_time)
         return True, 0
 
-def get_session_id():
-    """Obtient ou crée un ID de session unique"""
-    if 'session_id' not in st.session_state:
-        st.session_state.session_id = str(time.time())
-    return st.session_state.session_id
-
 # Créer l'instance globale du rate limiter
 rate_limiter = SimpleRateLimiter(max_requests=3, time_window_minutes=5)
 
@@ -72,15 +66,6 @@ file_handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
-
-# Classe pour gérer le rate limiting
-class RateLimiter:
-    def __init__(self, max_requests=5, time_window_minutes=5):
-        self.max_requests = max_requests
-        self.time_window = timedelta(minutes=time_window_minutes)
-        self.requests = defaultdict(list)
-        self.cleanup_interval = timedelta(minutes=10)
-        self.last_cleanup = datetime.now()
 
     def cleanup_old_requests(self):
         """Nettoie les anciennes requêtes pour éviter la fuite de mémoire"""
@@ -130,20 +115,6 @@ class RateLimiter:
         
         return is_limited, rate_limit_info
 
-# Créer une instance globale du rate limiter
-rate_limiter = RateLimiter(max_requests=5, time_window_minutes=5)
-
-def get_client_ip():
-    """Récupère l'adresse IP du client en tenant compte des proxys"""
-    try:
-        # Essaie d'abord de récupérer l'IP depuis les en-têtes Streamlit Cloud
-        forwarded_for = st.get_client({"ip": "unknown"}).get("ip")
-        if forwarded_for and forwarded_for != "unknown":
-            return forwarded_for.split(',')[0].strip()
-    except:
-        pass
-    return "unknown"
-
 def timeout_handler(func, timeout_seconds=30):
     """
     Exécute une fonction avec un timeout en utilisant threading
@@ -179,26 +150,6 @@ def execute_with_timeout(func, *args, timeout_seconds=30):
     def wrapped_func():
         return func(*args)
     return timeout_handler(wrapped_func, timeout_seconds)
-
-# Fonction pour envoyer des emails
-def send_log_email(subject, body, to_email):
-    from_email = os.getenv('EMAIL_FROM')
-    password = os.getenv('EMAIL_PASSWORD')
-
-    msg = MIMEMultipart()
-    msg['From'] = from_email
-    msg['To'] = to_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-
-    try:
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
-            server.starttls()
-            server.login(from_email, password)
-            server.send_message(msg)
-        logger.info(f"Log email sent to {to_email}")
-    except Exception as e:
-        logger.error(f"Failed to send log email: {str(e)}")
 
 def log_question(question: str, client_type: str, urgency: str, estimation: dict = None):
     """
@@ -251,37 +202,6 @@ def send_log_email(subject, body, to_email):
         logger.info(f"Log email sent to {to_email}")
     except Exception as e:
         logger.error(f"Failed to send log email: {str(e)}")
-
-# Fonction pour journaliser les questions
-def log_question(question: str, client_type: str, urgency: str, estimation: dict = None):
-    """
-    Journalise une question avec l'estimation si disponible
-    """
-    if estimation:
-        log_message = f"""
-Nouvelle question posée :
-Client : {client_type}
-Urgence : {urgency}
-Question : {question}
-
-Estimation : {estimation['forfait']}€ HT
-Domaine : {estimation['domaine']}
-Prestation : {estimation['prestation']}
-"""
-    else:
-        log_message = f"""
-Nouvelle question posée :
-Client : {client_type}
-Urgence : {urgency}
-Question : {question}
-"""
-    
-    logger.info(log_message)
-    
-    # Envoi de l'email avec les secrets Streamlit
-    subject = "Nouvelle question posée sur Estim'IA"
-    to_email = st.secrets["EMAIL_TO"]
-    send_log_email(subject, log_message, to_email)
 
 # Fonction pour appliquer le CSS personnalisé
 def apply_custom_css():
