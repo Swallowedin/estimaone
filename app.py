@@ -345,11 +345,13 @@ def main():
     
     st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
 
+    # Initialisation du compteur de keep-alive dans la session state
     if 'last_keep_alive' not in st.session_state:
         st.session_state['last_keep_alive'] = time.time()
 
+    # Vérification et mise à jour du keep-alive
     current_time = time.time()
-    if current_time - st.session_state['last_keep_alive'] > 3540:
+    if current_time - st.session_state['last_keep_alive'] > 3540:  # 59 minutes
         st.session_state['last_keep_alive'] = current_time
         st.experimental_rerun()
 
@@ -391,10 +393,9 @@ def main():
                 st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
                 return
 
-            # Calculate estimate
             forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(domaine, prestation, urgency)
             
-            # Logging
+            # Ajout du logging avec l'estimation
             if forfait is not None:
                 estimation = {
                     'forfait': forfait,
@@ -417,71 +418,68 @@ def main():
 
             loading_placeholder.empty()
 
-                st.success("Analyse terminée. Voici votre estimation :")
-                
-                st.markdown(f"""
-                <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
-                    <h2 style="color: #1f618d;">Forfait estimé</h2>
-                    <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
-                        À partir de <span style="color: #e74c3c;">{forfait} €HT</span>
-                    </p>
-                    <p style="font-style: italic;">Domaine : {domaine_label}</p>
-                    <p style="font-style: italic;">Prestation : {prestation_label}</p>
-                </div>
-                """, unsafe_allow_html=True)
+            st.success("Analyse terminée. Voici votre estimation :")
+            
+            st.markdown(f"""
+            <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
+                <h2 style="color: #1f618d;">Forfait estimé</h2>
+                <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
+                    À partir de <span style="color: #e74c3c;">{forfait} €HT</span>
+                </p>
+                <p style="font-style: italic;">Domaine : {domaine_label}</p>
+                <p style="font-style: italic;">Prestation : {prestation_label}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-                st.info("""
-                📌 Note importante : Cette estimation est fournie à titre indicatif et peut varier en fonction de la complexité spécifique de votre situation. 
-                Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Pour les particuliers, il est possible de payer en plusieurs fois.
-                """)
+            st.info("""
+            📌 Note importante : Cette estimation est fournie à titre indicatif et peut varier en fonction de la complexité spécifique de votre situation. 
+            Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Pour les particuliers, il est possible de payer en plusieurs fois.
+            """)
 
-                st.markdown("---")
+            st.markdown("---")
 
-                st.subheader("Indice de confiance de l'analyse")
-                st.progress(confidence)
-                st.write(f"Confiance : {confidence:.2%}")
+            st.subheader("Indice de confiance de l'analyse")
+            st.progress(confidence)
+            st.write(f"Confiance : {confidence:.2%}")
 
-                if confidence < 0.5:
-                    st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
-                elif not is_relevant:
-                    st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
+            if confidence < 0.5:
+                st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
+            elif not is_relevant:
+                st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
-                st.markdown("### 💡 Recommandations")
-                st.success("""
-                **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
-                nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
-                - Évaluer précisément la complexité de votre cas
-                - Vous fournir des conseils juridiques adaptés
-                - Élaborer une stratégie sur mesure pour votre situation
-                """)
+            st.markdown("### 💡 Recommandations")
+            st.success("""
+            **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
+            nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
+            - Évaluer précisément la complexité de votre cas
+            - Vous fournir des conseils juridiques adaptés
+            - Élaborer une stratégie sur mesure pour votre situation
+            """)
 
-                st.markdown("---")
+            st.markdown("---")
 
-                st.subheader("Détails du forfait")
-                for detail in calcul_details:
-                    st.write(detail)
+            st.subheader("Détails du forfait")
+            for detail in calcul_details:
+                st.write(detail)
 
-                st.subheader("Analyse détaillée")
-                st.write(detailed_analysis)
+            st.subheader("Analyse détaillée")
+            st.write(detailed_analysis)
 
-                expander = st.expander("Voir les éléments spécifiques pris en compte")
+            expander = st.expander("Voir les éléments spécifiques pris en compte")
+            with expander:
+                if isinstance(elements_used, dict) and "domaine" in elements_used and "prestation" in elements_used:
+                    elements_used["domaine"]["nom"] = domaine_label
+                    elements_used["prestation"]["nom"] = prestation_label
+                    st.json(elements_used)
+                else:
+                    st.warning("Les éléments spécifiques n'ont pas pu être analysés de manière optimale.")
+                    st.json(elements_used)
+
+            if sources and sources != "Aucune source spécifique mentionnée.":
+                expander = st.expander("Voir les sources d'information")
                 with expander:
-                    if isinstance(elements_used, dict) and "domaine" in elements_used and "prestation" in elements_used:
-                        elements_used["domaine"]["nom"] = domaine_label
-                        elements_used["prestation"]["nom"] = prestation_label
-                        st.json(elements_used)
-                    else:
-                        st.warning("Les éléments spécifiques n'ont pas pu être analysés de manière optimale.")
-                        st.json(elements_used)
+                    st.write(sources)
 
-                if sources and sources != "Aucune source spécifique mentionnée.":
-                    expander = st.expander("Voir les sources d'information")
-                    with expander:
-                        st.write(sources)
-
-            except Exception as e:
-                st.error(f"Une erreur s'est produite : {str(e)}")
-                logger.exception("Erreur dans le processus d'estimation")
         else:
             st.warning("Veuillez décrire votre cas avant de demander une estimation. N'utilisez pas l'exemple fourni tel quel.")
 
