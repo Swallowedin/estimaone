@@ -9,10 +9,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Tuple, Dict, Any
 import importlib.util
-from collections import Counter
+from collections import Counter, defaultdict
 import time
 import threading
 from functools import wraps
+from datetime import datetime, timedelta
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -24,6 +25,77 @@ file_handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
+
+# Classe pour gérer le rate limiting
+class RateLimiter:
+    def __init__(self, max_requests=5, time_window_minutes=5):
+        self.max_requests = max_requests
+        self.time_window = timedelta(minutes=time_window_minutes)
+        self.requests = defaultdict(list)
+        self.cleanup_interval = timedelta(minutes=10)
+        self.last_cleanup = datetime.now()
+
+    def cleanup_old_requests(self):
+        """Nettoie les anciennes requêtes pour éviter la fuite de mémoire"""
+        current_time = datetime.now()
+        if current_time - self.last_cleanup > self.cleanup_interval:
+            cutoff_time = current_time - self.time_window
+            for ip in list(self.requests.keys()):
+                self.requests[ip] = [time for time in self.requests[ip] if time > cutoff_time]
+                if not self.requests[ip]:
+                    del self.requests[ip]
+            self.last_cleanup = current_time
+
+    def is_rate_limited(self, ip_address: str) -> Tuple[bool, Dict]:
+        """
+        Vérifie si une adresse IP a dépassé la limite de requêtes
+        Retourne (is_limited, rate_limit_info)
+        """
+        self.cleanup_old_requests()
+        
+        current_time = datetime.now()
+        cutoff_time = current_time - self.time_window
+        
+        # Nettoyer les anciennes requêtes pour cette IP
+        self.requests[ip_address] = [
+            time for time in self.requests[ip_address] 
+            if time > cutoff_time
+        ]
+        
+        # Vérifier le nombre de requêtes
+        request_count = len(self.requests[ip_address])
+        
+        # Ajouter la nouvelle requête si on n'a pas atteint la limite
+        if request_count < self.max_requests:
+            self.requests[ip_address].append(current_time)
+            remaining = self.max_requests - request_count - 1
+            reset_time = self.requests[ip_address][0] + self.time_window if self.requests[ip_address] else current_time + self.time_window
+        else:
+            remaining = 0
+            reset_time = self.requests[ip_address][0] + self.time_window
+        
+        is_limited = request_count >= self.max_requests
+        rate_limit_info = {
+            "remaining": remaining,
+            "reset_time": reset_time,
+            "total_requests": request_count + (0 if is_limited else 1)
+        }
+        
+        return is_limited, rate_limit_info
+
+# Créer une instance globale du rate limiter
+rate_limiter = RateLimiter(max_requests=5, time_window_minutes=5)
+
+def get_client_ip():
+    """Récupère l'adresse IP du client en tenant compte des proxys"""
+    try:
+        # Essaie d'abord de récupérer l'IP depuis les en-têtes Streamlit Cloud
+        forwarded_for = st.get_client({"ip": "unknown"}).get("ip")
+        if forwarded_for and forwarded_for != "unknown":
+            return forwarded_for.split(',')[0].strip()
+    except:
+        pass
+    return "unknown"
 
 def timeout_handler(func, timeout_seconds=30):
     """
@@ -60,6 +132,56 @@ def execute_with_timeout(func, *args, timeout_seconds=30):
     def wrapped_func():
         return func(*args)
     return timeout_handler(wrapped_func, timeout_seconds)
+
+# Fonction pour envoyer des emails
+def send_log_email(subject, body, to_email):
+    from_email = os.getenv('EMAIL_FROM')
+    password = os.getenv('EMAIL_PASSWORD')
+
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(from_email, password)
+            server.send_message(msg)
+        logger.info(f"Log email sent to {to_email}")
+    except Exception as e:
+        logger.error(f"Failed to send log email: {str(e)}")
+
+def log_question(question: str, client_type: str, urgency: str, estimation: dict = None):
+    """
+    Journalise une question avec l'estimation si disponible
+    """
+    if estimation:
+        log_message = f"""
+Nouvelle question posée :
+Client : {client_type}
+Urgence : {urgency}
+Question : {question}
+
+Estimation : {estimation['forfait']}€ HT
+Domaine : {estimation['domaine']}
+Prestation : {estimation['prestation']}
+"""
+    else:
+        log_message = f"""
+Nouvelle question posée :
+Client : {client_type}
+Urgence : {urgency}
+Question : {question}
+"""
+    
+    logger.info(log_message)
+    
+    # Envoi de l'email avec les secrets Streamlit
+    subject = "Nouvelle question posée sur Estim'IA"
+    to_email = st.secrets["EMAIL_TO"]
+    send_log_email(subject, log_message, to_email)
 
 st.set_page_config(page_title="Estim'IA - Obtenez une estimation grâce à l'IA", page_icon="⚖️", layout="wide")
 
@@ -354,6 +476,18 @@ def display_loading_animation():
 def main():
     apply_custom_css()
     
+    # Vérification du rate limiting
+    client_ip = get_client_ip()
+    is_limited, rate_info = rate_limiter.is_rate_limited(client_ip)
+    
+    if is_limited:
+        st.error(f"""
+        ⚠️ Vous avez atteint le nombre maximum de requêtes autorisées.
+        Veuillez patienter {(rate_info['reset_time'] - datetime.now()).seconds // 60} minutes avant de réessayer.
+        """)
+        st.info("Pour plus d'informations ou pour une analyse urgente, veuillez nous contacter directement.")
+        return
+
     st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
 
     # Initialisation du compteur de keep-alive dans la session state
