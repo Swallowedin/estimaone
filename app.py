@@ -514,18 +514,6 @@ def display_loading_animation():
 def main():
     apply_custom_css()
     
-    # Vérification du rate limiting
-    client_ip = get_client_ip()
-    is_limited, rate_info = rate_limiter.is_rate_limited(client_ip)
-    
-    if is_limited:
-        st.error(f"""
-        ⚠️ Vous avez atteint le nombre maximum de requêtes autorisées.
-        Veuillez patienter {(rate_info['reset_time'] - datetime.now()).seconds // 60} minutes avant de réessayer.
-        """)
-        st.info("Pour plus d'informations ou pour une analyse urgente, veuillez nous contacter directement.")
-        return
-
     st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
 
     # Initialisation du compteur de keep-alive dans la session state
@@ -559,37 +547,8 @@ def main():
             Pour une analyse urgente, vous pouvez nous contacter directement.
             """)
             return
-            
-        if question and question != exemple_cas:  # Cette ligne était dupliquée
-            loading_placeholder = st.empty()
-            with loading_placeholder:
-                display_loading_animation()
-            
-            # Analyse avec timeout
-            result, timeout = execute_with_timeout(
-                analyze_question,
-                question, 
-                client_type, 
-                urgency,
-                timeout_seconds=30
-            )
-            
-            if timeout:
-                loading_placeholder.empty()
-                st.error("Désolé, l'analyse a pris trop de temps. Veuillez réessayer ou nous contacter directement.")
-                return
-                
-            domaine, prestation, confidence, is_relevant = result
-            
-            if not domaine or not prestation:
-                loading_placeholder.empty()
-                st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
-                return
 
-            forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(domaine, prestation, urgency)
-            
-            # Ajout du logging avec l'estimation
-            if forfait is not None:
+        if question and question != exemple_cas:
             loading_placeholder = st.empty()
             with loading_placeholder:
                 display_loading_animation()
@@ -706,7 +665,7 @@ def main():
             st.warning("Veuillez décrire votre cas avant de demander une estimation. N'utilisez pas l'exemple fourni tel quel.")
 
     st.markdown("---")
-    st.empty()  # Pour le keep-alive
+    st.empty()
     st.write("© 2024 View Avocats. Tous droits réservés.")
 
 if __name__ == "__main__":
