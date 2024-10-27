@@ -11,6 +11,7 @@ from typing import Tuple, Dict, Any
 import importlib.util
 from collections import Counter
 import time
+import signal
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +23,32 @@ file_handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
+
+def execute_with_timeout(func, *args, timeout_seconds=30):
+    """
+    Exécute une fonction avec un timeout simple
+    Retourne (résultat, False) si succès
+    Retourne (None, True) si timeout
+    """
+    def timeout_handler(signum, frame):
+        raise TimeoutError("Timeout")
+
+    # Mettre en place le gestionnaire de signal
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(timeout_seconds)
+    
+    try:
+        result = func(*args)
+        signal.alarm(0)  # Désactiver l'alarme
+        return result, False
+    except TimeoutError:
+        logger.error(f"Timeout lors de l'exécution de {func.__name__}")
+        return None, True
+    except Exception as e:
+        logger.error(f"Erreur lors de l'exécution de {func.__name__}: {str(e)}")
+        return None, True
+    finally:
+        signal.alarm(0)  # S'assurer que l'alarme est désactivée
 
 st.set_page_config(page_title="Estim'IA - Obtenez une estimation grâce à l'IA", page_icon="⚖️", layout="wide")
 
@@ -318,13 +345,11 @@ def main():
     
     st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
 
-    # Initialisation du compteur de keep-alive dans la session state
     if 'last_keep_alive' not in st.session_state:
         st.session_state['last_keep_alive'] = time.time()
 
-    # Vérification et mise à jour du keep-alive
     current_time = time.time()
-    if current_time - st.session_state['last_keep_alive'] > 3540:  # 59 minutes
+    if current_time - st.session_state['last_keep_alive'] > 3540:
         st.session_state['last_keep_alive'] = current_time
         st.experimental_rerun()
 
@@ -341,40 +366,56 @@ def main():
 
     if st.button("Obtenir une estimation grâce à l'intelligence artificielle"):
         if question and question != exemple_cas:
-            try:
-                loading_placeholder = st.empty()
-                with loading_placeholder:
-                    display_loading_animation()
-                
-                domaine, prestation, confidence, is_relevant = analyze_question(question, client_type, urgency)
-                
-                if not domaine or not prestation:
-                    st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
-                    return
-
-                forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(domaine, prestation, urgency)
-                
-                # Ajout du logging avec l'estimation
-                if forfait is not None:
-                    estimation = {
-                        'forfait': forfait,
-                        'domaine': domaine_label,
-                        'prestation': prestation_label
-                    }
-                    log_question(question, client_type, urgency, estimation)
-                else:
-                    log_question(question, client_type, urgency)
-
-                if forfait is None:
-                    st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
-                    for detail in calcul_details:
-                        st.write(detail)
-                    st.info("Pour obtenir une estimation précise, veuillez nous contacter directement.")
-                    return
-
-                detailed_analysis, elements_used, sources = get_detailed_analysis(question, client_type, urgency, domaine, prestation)
-
+            loading_placeholder = st.empty()
+            with loading_placeholder:
+                display_loading_animation()
+            
+            # Analyse avec timeout
+            result, timeout = execute_with_timeout(
+                analyze_question,
+                question, 
+                client_type, 
+                urgency,
+                timeout_seconds=30
+            )
+            
+            if timeout:
                 loading_placeholder.empty()
+                st.error("Désolé, l'analyse a pris trop de temps. Veuillez réessayer ou nous contacter directement.")
+                return
+                
+            domaine, prestation, confidence, is_relevant = result
+            
+            if not domaine or not prestation:
+                loading_placeholder.empty()
+                st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
+                return
+
+            # Calculate estimate
+            forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(domaine, prestation, urgency)
+            
+            # Logging
+            if forfait is not None:
+                estimation = {
+                    'forfait': forfait,
+                    'domaine': domaine_label,
+                    'prestation': prestation_label
+                }
+                log_question(question, client_type, urgency, estimation)
+            else:
+                log_question(question, client_type, urgency)
+
+            if forfait is None:
+                loading_placeholder.empty()
+                st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
+                for detail in calcul_details:
+                    st.write(detail)
+                st.info("Pour obtenir une estimation précise, veuillez nous contacter directement.")
+                return
+
+            detailed_analysis, elements_used, sources = get_detailed_analysis(question, client_type, urgency, domaine, prestation)
+
+            loading_placeholder.empty()
 
                 st.success("Analyse terminée. Voici votre estimation :")
                 
