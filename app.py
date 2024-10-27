@@ -14,6 +14,38 @@ import time
 from datetime import datetime, timedelta
 import threading
 
+# Constantes pour le rate limiting global
+MAX_GLOBAL_REQUESTS = 200  # Maximum de requêtes globales
+RESET_INTERVAL = 1800     # 30 minutes en secondes
+
+def check_global_limit() -> Tuple[bool, int]:
+    """
+    Vérifie la limite globale de requêtes
+    Retourne (peut_continuer, requetes_restantes)
+    """
+    current_time = time.time()
+
+    # Initialisation des variables globales si nécessaires
+    if 'global_request_count' not in st.session_state:
+        st.session_state.global_request_count = 0
+    if 'last_reset_time' not in st.session_state:
+        st.session_state.last_reset_time = current_time
+
+    # Vérifier si on doit réinitialiser le compteur
+    if current_time - st.session_state.last_reset_time > RESET_INTERVAL:
+        st.session_state.global_request_count = 0
+        st.session_state.last_reset_time = current_time
+
+    # Vérifier si on a atteint la limite
+    if st.session_state.global_request_count >= MAX_GLOBAL_REQUESTS:
+        time_until_reset = RESET_INTERVAL - (current_time - st.session_state.last_reset_time)
+        minutes_left = int(time_until_reset / 60)
+        return False, minutes_left
+
+    # Incrémenter le compteur
+    st.session_state.global_request_count += 1
+    return True, MAX_GLOBAL_REQUESTS - st.session_state.global_request_count
+
 def get_session_id():
     """Obtient ou crée un ID de session unique"""
     if 'session_id' not in st.session_state:
@@ -420,9 +452,18 @@ def main():
     )
 
     if st.button("Obtenir une estimation grâce à l'intelligence artificielle"):
-        # Vérifier le rate limit
+        # Vérifier la limite globale d'abord
+        peut_continuer_global, requetes_restantes = check_global_limit()
+        if not peut_continuer_global:
+            st.error(f"""
+            ⚠️ Le nombre maximum de requêtes global a été atteint pour le moment.
+            Le système sera à nouveau disponible dans {requetes_restantes} minutes.
+            Pour une analyse urgente, vous pouvez nous contacter directement.
+            """)
+            return
+
+        # Vérifier ensuite le rate limit individuel
         peut_continuer, temps_attente = rate_limiter.check_limit(get_session_id())
-        
         if not peut_continuer:
             st.warning(f"""
             ⏳ Merci de patienter {temps_attente} minute{'s' if temps_attente > 1 else ''} avant de faire une nouvelle demande.
