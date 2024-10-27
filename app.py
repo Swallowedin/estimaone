@@ -12,6 +12,7 @@ import importlib.util
 from collections import Counter, defaultdict
 import time
 from datetime import datetime, timedelta
+import threading
 
 def get_session_id():
     """Obtient ou crée un ID de session unique"""
