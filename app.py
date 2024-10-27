@@ -11,9 +11,47 @@ from typing import Tuple, Dict, Any
 import importlib.util
 from collections import Counter, defaultdict
 import time
-import threading
-from functools import wraps
 from datetime import datetime, timedelta
+
+# AJOUTEZ LE NOUVEAU CODE ICI
+def get_session_id():
+    """Obtient ou crée un ID de session unique"""
+    if 'session_id' not in st.session_state:
+        st.session_state.session_id = str(time.time())
+    return st.session_state.session_id
+
+class SimpleRateLimiter:
+    def __init__(self, max_requests=3, time_window_minutes=5):
+        self.max_requests = max_requests
+        self.time_window = timedelta(minutes=time_window_minutes)
+        self.requests = defaultdict(list)
+
+    def check_limit(self, session_id: str) -> Tuple[bool, int]:
+        """
+        Vérifie si la limite est atteinte
+        Retourne (peut_continuer, temps_attente_en_minutes)
+        """
+        current_time = datetime.now()
+        cutoff_time = current_time - self.time_window
+        
+        # Nettoyer les anciennes requêtes
+        self.requests[session_id] = [
+            time for time in self.requests[session_id]
+            if time > cutoff_time
+        ]
+        
+        if len(self.requests[session_id]) >= self.max_requests:
+            # Calculer le temps restant avant la prochaine utilisation possible
+            temps_attente = (self.requests[session_id][0] + self.time_window - current_time).seconds // 60
+            return False, temps_attente
+            
+        # Ajouter la nouvelle requête
+        self.requests[session_id].append(current_time)
+        return True, 0
+
+# Créer l'instance du rate limiter (3 requêtes toutes les 5 minutes)
+rate_limiter = SimpleRateLimiter(max_requests=3, time_window_minutes=5)
+# FIN DU NOUVEAU CODE
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -512,7 +550,46 @@ def main():
     )
 
     if st.button("Obtenir une estimation grâce à l'intelligence artificielle"):
-        if question and question != exemple_cas:
+        # Vérifier le rate limit
+        peut_continuer, temps_attente = rate_limiter.check_limit(get_session_id())
+        
+        if not peut_continuer:
+            st.warning(f"""
+            ⏳ Merci de patienter {temps_attente} minute{'s' if temps_attente > 1 else ''} avant de faire une nouvelle demande.
+            Pour une analyse urgente, vous pouvez nous contacter directement.
+            """)
+            return
+            
+        if question and question != exemple_cas:  # Cette ligne était dupliquée
+            loading_placeholder = st.empty()
+            with loading_placeholder:
+                display_loading_animation()
+            
+            # Analyse avec timeout
+            result, timeout = execute_with_timeout(
+                analyze_question,
+                question, 
+                client_type, 
+                urgency,
+                timeout_seconds=30
+            )
+            
+            if timeout:
+                loading_placeholder.empty()
+                st.error("Désolé, l'analyse a pris trop de temps. Veuillez réessayer ou nous contacter directement.")
+                return
+                
+            domaine, prestation, confidence, is_relevant = result
+            
+            if not domaine or not prestation:
+                loading_placeholder.empty()
+                st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
+                return
+
+            forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(domaine, prestation, urgency)
+            
+            # Ajout du logging avec l'estimation
+            if forfait is not None:
             loading_placeholder = st.empty()
             with loading_placeholder:
                 display_loading_animation()
