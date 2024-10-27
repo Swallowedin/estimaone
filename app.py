@@ -11,7 +11,8 @@ from typing import Tuple, Dict, Any
 import importlib.util
 from collections import Counter
 import time
-import signal
+import threading
+from functools import wraps
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -24,31 +25,41 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-def execute_with_timeout(func, *args, timeout_seconds=30):
+def timeout_handler(func, timeout_seconds=30):
     """
-    Exécute une fonction avec un timeout simple
-    Retourne (résultat, False) si succès
-    Retourne (None, True) si timeout
+    Exécute une fonction avec un timeout en utilisant threading
     """
-    def timeout_handler(signum, frame):
-        raise TimeoutError("Timeout")
-
-    # Mettre en place le gestionnaire de signal
-    signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(timeout_seconds)
+    result = [None]
+    error = [None]
     
-    try:
-        result = func(*args)
-        signal.alarm(0)  # Désactiver l'alarme
-        return result, False
-    except TimeoutError:
+    def worker():
+        try:
+            result[0] = func()
+        except Exception as e:
+            error[0] = e
+    
+    thread = threading.Thread(target=worker)
+    thread.daemon = True
+    thread.start()
+    thread.join(timeout=timeout_seconds)
+    
+    if thread.is_alive():
         logger.error(f"Timeout lors de l'exécution de {func.__name__}")
         return None, True
-    except Exception as e:
-        logger.error(f"Erreur lors de l'exécution de {func.__name__}: {str(e)}")
+        
+    if error[0] is not None:
+        logger.error(f"Erreur lors de l'exécution de {func.__name__}: {str(error[0])}")
         return None, True
-    finally:
-        signal.alarm(0)  # S'assurer que l'alarme est désactivée
+        
+    return result[0], False
+
+def execute_with_timeout(func, *args, timeout_seconds=30):
+    """
+    Wrapper pour exécuter une fonction avec des arguments et un timeout
+    """
+    def wrapped_func():
+        return func(*args)
+    return timeout_handler(wrapped_func, timeout_seconds)
 
 st.set_page_config(page_title="Estim'IA - Obtenez une estimation grâce à l'IA", page_icon="⚖️", layout="wide")
 
