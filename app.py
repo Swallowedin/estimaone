@@ -13,6 +13,7 @@ from collections import Counter, defaultdict
 import time
 from datetime import datetime, timedelta
 import threading
+import random
 
 # Constantes pour le rate limiting global
 MAX_GLOBAL_REQUESTS = 100  # Maximum de requêtes globales
@@ -425,6 +426,188 @@ def display_loading_animation():
     </div>
     """, unsafe_allow_html=True)
 
+def send_contact_email(name: str, email: str, phone: str, message: str) -> bool:
+    """
+    Envoie un email de contact
+    """
+    try:
+        from_email = os.getenv('EMAIL_FROM')
+        to_email = st.secrets["EMAIL_TO"]
+        password = os.getenv('EMAIL_PASSWORD')
+
+        subject = f"Nouveau message de contact - Estim'IA"
+        
+        body = f"""
+Nouveau message de contact reçu via Estim'IA :
+
+Nom : {name}
+Email : {email}
+Téléphone : {phone}
+
+Message :
+{message}
+"""
+
+        msg = MIMEMultipart()
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(from_email, password)
+            server.send_message(msg)
+            
+        logger.info(f"Contact email sent from {email}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send contact email: {str(e)}")
+        return False
+
+class AntiSpam:
+    def __init__(self, min_submit_delay: int = 10):
+        self.min_submit_delay = min_submit_delay
+
+    def generate_math_captcha(self) -> Tuple[int, int, int]:
+        """Génère un captcha mathématique simple"""
+        a = random.randint(1, 10)
+        b = random.randint(1, 10)
+        return a, b, a + b
+
+    def initialize_session(self):
+        """Initialise les variables de session pour l'anti-spam"""
+        if 'captcha' not in st.session_state:
+            a, b, answer = self.generate_math_captcha()
+            st.session_state.captcha = {
+                'a': a,
+                'b': b,
+                'answer': answer
+            }
+        if 'last_submit_time' not in st.session_state:
+            st.session_state.last_submit_time = 0
+
+    def add_honeypot(self):
+        """Ajoute un champ honeypot caché"""
+        st.markdown("""
+            <div style="display:none">
+                <input type="text" name="website" id="website" tabindex="-1" autocomplete="off">
+            </div>
+        """, unsafe_allow_html=True)
+
+    def verify_submission(self, captcha_answer: str, honeypot: str = '') -> Tuple[bool, str]:
+        """
+        Vérifie si la soumission est légitime
+        Retourne (is_valid, error_message)
+        """
+        current_time = time.time()
+        
+        # Vérifier le délai minimum entre les soumissions
+        if current_time - st.session_state.last_submit_time < self.min_submit_delay:
+            return False, "Veuillez patienter quelques secondes avant de renvoyer un message."
+
+        # Vérifier le honeypot
+        if honeypot:
+            return False, "Erreur de validation."
+
+        # Vérifier le captcha
+        try:
+            if int(captcha_answer) != st.session_state.captcha['answer']:
+                return False, "La réponse au calcul est incorrecte."
+        except ValueError:
+            return False, "Veuillez entrer un nombre valide pour le calcul."
+
+        # Mettre à jour le timestamp de dernière soumission
+        st.session_state.last_submit_time = current_time
+        return True, ""
+
+def display_contact_form():
+    """
+    Affiche et gère le formulaire de contact avec protection anti-spam
+    """
+    st.markdown("### 📬 Contactez-nous")
+    st.write("""
+    Vous souhaitez plus d'informations ou prendre rendez-vous ? 
+    Remplissez le formulaire ci-dessous et nous vous recontacterons dans les plus brefs délais.
+    """)
+    
+    # Initialiser l'anti-spam
+    anti_spam = AntiSpam()
+    anti_spam.initialize_session()
+    
+    # Créer le formulaire
+    with st.form(key="contact_form"):
+        # Ajouter le honeypot
+        anti_spam.add_honeypot()
+        
+        contact_col1, contact_col2 = st.columns(2)
+        
+        with contact_col1:
+            name = st.text_input("Nom et Prénom *")
+            phone = st.text_input("Téléphone")
+            
+        with contact_col2:
+            email = st.text_input("Email *")
+        
+        message = st.text_area(
+            "Votre message *",
+            height=120,
+            placeholder="Décrivez brièvement votre situation et vos attentes..."
+        )
+        
+        # Captcha mathématique
+        st.markdown("**Vérification anti-spam**")
+        captcha_col1, captcha_col2 = st.columns([2, 1])
+        with captcha_col1:
+            st.write(f"Combien font {st.session_state.captcha['a']} + {st.session_state.captcha['b']} ?")
+        with captcha_col2:
+            captcha_answer = st.text_input("Réponse *", key="captcha_input", label_visibility="collapsed")
+        
+        honeypot = st.text_input("Laissez ce champ vide", key="honeypot", label_visibility="collapsed")
+        st.markdown(
+            """<style>[data-testid="stFormSubmitButton"] { margin-top: 10px; }</style>""",
+            unsafe_allow_html=True
+        )
+        
+        submit_button = st.form_submit_button("Envoyer le message")
+    
+    if submit_button:
+        # Vérifier les champs obligatoires
+        if not name or not email or not message or not captcha_answer:
+            st.error("Veuillez remplir tous les champs obligatoires (*)")
+            return
+        
+        if "@" not in email or "." not in email:
+            st.error("Veuillez entrer une adresse email valide")
+            return
+        
+        # Vérifier l'anti-spam
+        is_valid, error_message = anti_spam.verify_submission(captcha_answer, honeypot)
+        if not is_valid:
+            st.error(error_message)
+            return
+            
+        # Envoyer le message
+        with st.spinner("Envoi de votre message..."):
+            success = send_contact_email(name, email, phone, message)
+            
+        if success:
+            st.success("""
+            ✅ Votre message a bien été envoyé ! 
+            Nous vous recontacterons dans les plus brefs délais.
+            """)
+            # Générer un nouveau captcha
+            a, b, answer = anti_spam.generate_math_captcha()
+            st.session_state.captcha = {'a': a, 'b': b, 'answer': answer}
+            # Recharger la page pour réinitialiser le formulaire
+            st.experimental_rerun()
+        else:
+            st.error("""
+            ❌ Une erreur est survenue lors de l'envoi du message. 
+            Veuillez réessayer ou nous contacter directement par téléphone.
+            """)
+
 def main():
     apply_custom_css()
     
@@ -586,7 +769,10 @@ def main():
 
         else:
             st.warning("Veuillez décrire votre cas avant de demander une estimation. N'utilisez pas l'exemple fourni tel quel.")
-
+    
+    st.markdown("---")
+    display_contact_form()
+    
     st.markdown("---")
     st.empty()
     st.write("© 2024 View Avocats. Tous droits réservés.")
