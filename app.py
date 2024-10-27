@@ -13,7 +13,6 @@ from collections import Counter, defaultdict
 import time
 from datetime import datetime, timedelta
 
-# AJOUTEZ LE NOUVEAU CODE ICI
 def get_session_id():
     """Obtient ou crée un ID de session unique"""
     if 'session_id' not in st.session_state:
@@ -31,27 +30,37 @@ class SimpleRateLimiter:
         Vérifie si la limite est atteinte
         Retourne (peut_continuer, temps_attente_en_minutes)
         """
+        if 'requests' not in st.session_state:
+            st.session_state.requests = []
+
         current_time = datetime.now()
         cutoff_time = current_time - self.time_window
         
         # Nettoyer les anciennes requêtes
-        self.requests[session_id] = [
-            time for time in self.requests[session_id]
+        st.session_state.requests = [
+            time for time in st.session_state.requests
             if time > cutoff_time
         ]
         
-        if len(self.requests[session_id]) >= self.max_requests:
+        if len(st.session_state.requests) >= self.max_requests:
             # Calculer le temps restant avant la prochaine utilisation possible
-            temps_attente = (self.requests[session_id][0] + self.time_window - current_time).seconds // 60
-            return False, temps_attente
+            if st.session_state.requests:
+                temps_attente = max(0, (st.session_state.requests[0] + self.time_window - current_time).seconds // 60)
+                return False, temps_attente
+            return False, self.time_window.seconds // 60
             
         # Ajouter la nouvelle requête
-        self.requests[session_id].append(current_time)
+        st.session_state.requests.append(current_time)
         return True, 0
 
-# Créer l'instance du rate limiter (3 requêtes toutes les 5 minutes)
+def get_session_id():
+    """Obtient ou crée un ID de session unique"""
+    if 'session_id' not in st.session_state:
+        st.session_state.session_id = str(time.time())
+    return st.session_state.session_id
+
+# Créer l'instance globale du rate limiter
 rate_limiter = SimpleRateLimiter(max_requests=3, time_window_minutes=5)
-# FIN DU NOUVEAU CODE
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
