@@ -68,54 +68,6 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-    def cleanup_old_requests(self):
-        """Nettoie les anciennes requêtes pour éviter la fuite de mémoire"""
-        current_time = datetime.now()
-        if current_time - self.last_cleanup > self.cleanup_interval:
-            cutoff_time = current_time - self.time_window
-            for ip in list(self.requests.keys()):
-                self.requests[ip] = [time for time in self.requests[ip] if time > cutoff_time]
-                if not self.requests[ip]:
-                    del self.requests[ip]
-            self.last_cleanup = current_time
-
-    def is_rate_limited(self, ip_address: str) -> Tuple[bool, Dict]:
-        """
-        Vérifie si une adresse IP a dépassé la limite de requêtes
-        Retourne (is_limited, rate_limit_info)
-        """
-        self.cleanup_old_requests()
-        
-        current_time = datetime.now()
-        cutoff_time = current_time - self.time_window
-        
-        # Nettoyer les anciennes requêtes pour cette IP
-        self.requests[ip_address] = [
-            time for time in self.requests[ip_address] 
-            if time > cutoff_time
-        ]
-        
-        # Vérifier le nombre de requêtes
-        request_count = len(self.requests[ip_address])
-        
-        # Ajouter la nouvelle requête si on n'a pas atteint la limite
-        if request_count < self.max_requests:
-            self.requests[ip_address].append(current_time)
-            remaining = self.max_requests - request_count - 1
-            reset_time = self.requests[ip_address][0] + self.time_window if self.requests[ip_address] else current_time + self.time_window
-        else:
-            remaining = 0
-            reset_time = self.requests[ip_address][0] + self.time_window
-        
-        is_limited = request_count >= self.max_requests
-        rate_limit_info = {
-            "remaining": remaining,
-            "reset_time": reset_time,
-            "total_requests": request_count + (0 if is_limited else 1)
-        }
-        
-        return is_limited, rate_limit_info
-
 def timeout_handler(func, timeout_seconds=30):
     """
     Exécute une fonction avec un timeout en utilisant threading
