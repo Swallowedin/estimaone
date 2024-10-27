@@ -15,8 +15,8 @@ from datetime import datetime, timedelta
 import threading
 
 # Constantes pour le rate limiting global
-MAX_GLOBAL_REQUESTS = 200  # Maximum de requêtes globales
-RESET_INTERVAL = 1800     # 30 minutes en secondes
+MAX_GLOBAL_REQUESTS = 100  # Maximum de requêtes globales
+RESET_INTERVAL = 600     # 10 minutes en secondes
 
 def check_global_limit() -> Tuple[bool, int]:
     """
