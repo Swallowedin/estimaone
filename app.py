@@ -804,19 +804,18 @@ def main():
                 
                 # 1. Résumé de l'analyse
                 st.info(f"""
-                📋 Notre compréhension de votre situation :
+                📋 Analyse de votre situation :
                 
                 {detailed_analysis}
-                
-                Sur la base de cette analyse, nous allons maintenant vous proposer une estimation adaptée à votre situation.
+               
                 """)
 
                 # 2. Estimation
                 st.markdown(f"""
                 <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
-                    <h2 style="color: #1f618d;">Forfait estimé</h2>
-                    <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
-                        À partir de <span style="color: #e74c3c;">{forfait} €HT</span>
+                    <h2 style="color: #1f618d;">Estimation de la prestation</h2>
+                    <p style="font-size: 24px; font-weight: bold; color: #417068;">
+                        À partir de <span style="color: #3c7be7;">{forfait} €HT</span>
                     </p>
                     <p style="font-style: italic;">Domaine : {domaine_label}</p>
                     <p style="font-style: italic;">Prestation : {prestation_label}</p>
@@ -824,8 +823,8 @@ def main():
                 """, unsafe_allow_html=True)
 
                 st.info("""
-                📌 Note importante : Cette estimation est fournie à titre indicatif et peut varier en fonction de la complexité spécifique de votre situation. 
-                Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Pour les particuliers, il est possible de payer en plusieurs fois.
+                📌 Note importante : Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation. 
+                Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Si vous êtes un particulier, il est possible de payer en plusieurs fois.
                 """)
 
                 st.markdown("---")
@@ -845,9 +844,9 @@ def main():
                 # 4. Recommandations
                 st.markdown("### 💡 Recommandations")
                 st.success("""
-                **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
+                **Consultation initiale recommandée** - Si vous souhaitez uniquement bénéficier d'une consultation pour connaître vos droits, 
                 nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
-                - Évaluer précisément la complexité de votre cas
+                - Évaluer précisément la complexité de votre situation
                 - Vous fournir des conseils juridiques adaptés
                 - Élaborer une stratégie sur mesure pour votre situation
                 """)
