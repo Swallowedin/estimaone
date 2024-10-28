@@ -19,26 +19,17 @@ import random
 MAX_GLOBAL_REQUESTS = 100  # Maximum de requêtes globales
 RESET_INTERVAL = 600     # 10 minutes en secondes
 
-def display_analysis_summary(question: str, analysis_details: Dict):
+def display_analysis_summary(question: str, detailed_analysis: str):
     """
-    Affiche un résumé de l'analyse avant l'estimation
+    Affiche un résumé de l'analyse en termes accessibles aux non-juristes
     """
     st.info(f"""
-    📋 Synthèse de notre analyse :
+    📋 Notre compréhension de votre situation :
     
-    **Votre situation :**
-    {question}
+    {detailed_analysis}
     
-    **Notre compréhension :**
-    - Domaine juridique identifié : {analysis_details['domaine']}
-    - Type de prestation adaptée : {analysis_details['prestation']}
-    
-    **Points clés identifiés :**
-    - {analysis_details['points_cles']}
-    
-    En fonction de ces éléments, nous vous proposons l'estimation suivante :
+    Sur la base de cette analyse, nous allons maintenant vous proposer une estimation adaptée à votre situation.
     """)
-
 
 def check_global_limit() -> Tuple[bool, int]:
     """
@@ -775,14 +766,6 @@ def main():
                 detailed_analysis, elements_used, sources = get_detailed_analysis(
                     question, client_type_desc, urgency, domaine, prestation
                 )
-                
-                # Préparation du résumé d'analyse
-                analysis_details = {
-                    'domaine': elements_used['domaine']['nom'],
-                    'prestation': elements_used['prestation']['nom'],
-                    'points_cles': elements_used['domaine'].get('description', 
-                        "Analyse en cours de traitement...")
-                }
 
                 # Calcul de l'estimation
                 forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(
@@ -814,7 +797,13 @@ def main():
                 # Container principal pour les résultats
                 with st.container():
                     # 1. Résumé de l'analyse
-                    display_analysis_summary(question, analysis_details)
+                    st.info(f"""
+                    📋 Notre compréhension de votre situation :
+                    
+                    {detailed_analysis}
+                    
+                    Sur la base de cette analyse, nous allons maintenant vous proposer une estimation adaptée à votre situation.
+                    """)
 
                     # 2. Estimation
                     st.markdown(f"""
@@ -859,7 +848,7 @@ def main():
 
                     st.markdown("---")
 
-                    # 5. Détails et analyse dans des colonnes
+                    # 5. Détails dans des colonnes
                     details_col1, details_col2 = st.columns(2)
                     
                     with details_col1:
@@ -868,21 +857,13 @@ def main():
                             st.write(detail)
 
                     with details_col2:
-                        st.subheader("Analyse détaillée")
-                        st.write(detailed_analysis)
+                        if isinstance(elements_used, dict) and "prestation" in elements_used:
+                            st.subheader("Procédure suggérée")
+                            st.write(elements_used['prestation'].get('description', 'Non spécifié'))
 
-                    # 6. Informations supplémentaires dans des expandeurs
-                    with st.expander("Voir les éléments spécifiques pris en compte"):
-                        if isinstance(elements_used, dict) and "domaine" in elements_used and "prestation" in elements_used:
-                            elements_used["domaine"]["nom"] = domaine_label
-                            elements_used["prestation"]["nom"] = prestation_label
-                            st.json(elements_used)
-                        else:
-                            st.warning("Les éléments spécifiques n'ont pas pu être analysés de manière optimale.")
-                            st.json(elements_used)
-
+                    # 6. Informations supplémentaires
                     if sources and sources != "Aucune source spécifique mentionnée.":
-                        with st.expander("Voir les sources d'information"):
+                        with st.expander("Sources juridiques"):
                             st.write(sources)
 
         else:
