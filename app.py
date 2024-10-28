@@ -362,7 +362,7 @@ Prestation recommandée : {prestation}
 Structurez votre réponse en expliquant :
 1. La situation et les enjeux identifiés dans un langage simple
 2. Les démarches possibles et leurs implications concrètes
-3. Pourquoi nous recommandons cette prestation en particulier
+3. Listez les sources principales qui justifient notre approche.
 
 Évitez le jargon juridique. Si vous devez utiliser des termes techniques, expliquez-les simplement.
 Rédigez comme si vous parliez à quelqu'un qui n'a aucune connaissance juridique.
@@ -371,10 +371,10 @@ Structurez votre réponse en trois parties séparées par des lignes vides :
 
 Expliquez la situation de manière accessible, sans jargon juridique.
 
-2. Éléments spécifiques (format JSON strict) :
+Éléments spécifiques (format JSON strict) :
 {{"domaine": {{"nom": "nom_du_domaine", "description": "explication simple du domaine juridique"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "pourquoi cette solution est adaptée"}}}}
 
-3. Sources d'information :
+Sources d'information :
 Listez les sources principales qui justifient notre approche.
 
 Assurez-vous que le langage reste accessible tout en étant précis."""
