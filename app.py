@@ -359,26 +359,15 @@ Degré d'urgence : {urgency}
 Domaine concerné : {domaine}
 Prestation recommandée : {prestation}
 
-Structurez votre réponse en expliquant :
-- La situation et les enjeux identifiés dans un langage simple
-- Les démarches possibles et leurs implications concrètes
-- Listez les sources principales qui justifient notre approche.
+Structurez votre réponse en trois parties, en évitant tout jargon juridique et en expliquant chaque terme technique si nécessaire :
 
-Évitez le jargon juridique. Si vous devez utiliser des termes techniques, expliquez-les simplement.
-Rédigez comme si vous parliez à quelqu'un qui n'a aucune connaissance juridique.
-
-Structurez votre réponse en trois parties séparées par des lignes vides :
-
-Analyse :
 [Votre analyse en langage accessible]
 
-Éléments spécifiques (format JSON strict) :
+Éléments techniques :
 {{"domaine": {{"nom": "nom_du_domaine", "description": "explication simple du domaine juridique"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "pourquoi cette solution est adaptée"}}}}
 
-Sources :
-[Listez les sources principales qui justifient notre approche]
-
-Assurez-vous que le langage reste accessible tout en étant précis."""
+Références légales :
+[Les principales sources juridiques pertinentes]"""
 
     try:
         response = client.chat.completions.create(
@@ -395,8 +384,11 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
 
         parts = content.split('\n\n')
         
+        # Extraction de l'analyse
         analysis = parts[0] if len(parts) > 0 else "Analyse non disponible."
+        analysis = analysis.strip()
         
+        # Extraction des éléments techniques (JSON)
         elements_used = {}
         if len(parts) > 1:
             try:
@@ -407,22 +399,25 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
                 else:
                     logger.warning("Aucun JSON valide trouvé dans la réponse.")
                     elements_used = {
-                        "domaine": {"nom": domaine, "description": "Information non fournie par l'API"},
-                        "prestation": {"nom": prestation, "description": "Information non fournie par l'API"}
+                        "domaine": {"nom": domaine, "description": "Information non fournie"},
+                        "prestation": {"nom": prestation, "description": "Information non fournie"}
                     }
             except json.JSONDecodeError as e:
                 logger.error(f"Erreur de décodage JSON : {e}")
                 elements_used = {
-                    "domaine": {"nom": domaine, "description": "Erreur dans l'analyse de la réponse"},
-                    "prestation": {"nom": prestation, "description": "Erreur dans l'analyse de la réponse"}
+                    "domaine": {"nom": domaine, "description": "Erreur dans l'analyse"},
+                    "prestation": {"nom": prestation, "description": "Erreur dans l'analyse"}
                 }
-        else:
-            elements_used = {
-                "domaine": {"nom": domaine, "description": "Information non disponible"},
-                "prestation": {"nom": prestation, "description": "Information non disponible"}
-            }
         
-        sources = parts[2] if len(parts) > 2 else "Aucune source spécifique mentionnée."
+        # Extraction des sources juridiques
+        sources = ''
+        if len(parts) > 2:
+            sources = parts[2].strip()
+            # Nettoyage du titre "Références légales :" s'il est présent
+            if sources.startswith("Références légales :"):
+                sources = sources.replace("Références légales :", "").strip()
+        else:
+            sources = "Aucune source spécifique mentionnée."
 
         return analysis, elements_used, sources
     except Exception as e:
