@@ -554,8 +554,11 @@ def display_contact_form():
                 
             with contact_col2:
                 email = st.text_input("Email *")
-                st.text_input(f"Combien font {st.session_state.captcha['a']} + {st.session_state.captcha['b']} ? *", 
-                            key="captcha_input")
+                captcha_cols = st.columns([2.5, 1])
+                with captcha_cols[0]:
+                    st.write(f"{st.session_state.captcha['a']} + {st.session_state.captcha['b']} = ")
+                with captcha_cols[1]:
+                    captcha_answer = st.text_input("", key="captcha_input", label_visibility="collapsed")
             
             honeypot = st.text_input("Laissez ce champ vide", key="honeypot", label_visibility="collapsed")
         
@@ -574,9 +577,6 @@ def display_contact_form():
         submit_button = st.form_submit_button("Envoyer le message")
     
     if submit_button:
-        # On récupère la réponse du captcha
-        captcha_answer = st.session_state.captcha_input
-        
         # Vérifier les champs obligatoires
         if not name or not email or not message or not captcha_answer:
             st.error("Veuillez remplir tous les champs obligatoires (*)")
@@ -604,7 +604,6 @@ def display_contact_form():
             ❌ Une erreur est survenue lors de l'envoi du message. 
             Veuillez réessayer ou nous contacter directement par téléphone.
             """)
-
 def main():
     apply_custom_css()
     
