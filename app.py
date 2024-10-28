@@ -371,10 +371,10 @@ Structurez votre réponse en trois parties séparées par des lignes vides :
 
 Expliquez la situation de manière accessible, sans jargon juridique.
 
-Éléments spécifiques (format JSON strict) :
+2. Éléments spécifiques (format JSON strict) :
 {{"domaine": {{"nom": "nom_du_domaine", "description": "explication simple du domaine juridique"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "pourquoi cette solution est adaptée"}}}}
 
-Sources d'information :
+3. Sources d'information :
 Listez les sources principales qui justifient notre approche.
 
 Assurez-vous que le langage reste accessible tout en étant précis."""
