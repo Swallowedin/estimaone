@@ -536,6 +536,38 @@ def display_contact_form():
     anti_spam = AntiSpam()
     anti_spam.initialize_session()
     
+    # Initialiser le state du formulaire si nécessaire
+    if 'form_submitted' not in st.session_state:
+        st.session_state.form_submitted = False
+        
+    if 'form_values' not in st.session_state:
+        st.session_state.form_values = {
+            'name': '',
+            'email': '',
+            'phone': '',
+            'message': ''
+        }
+    
+    # Si le formulaire a été soumis avec succès, afficher uniquement le message de succès
+    if st.session_state.form_submitted:
+        st.success("""
+        ✅ Votre message a bien été envoyé ! 
+        Nous vous recontacterons dans les plus brefs délais.
+        """)
+        # Réinitialiser le state après 3 secondes
+        time.sleep(3)
+        st.session_state.form_submitted = False
+        st.session_state.form_values = {
+            'name': '',
+            'email': '',
+            'phone': '',
+            'message': ''
+        }
+        # Générer un nouveau captcha
+        a, b, answer = anti_spam.generate_math_captcha()
+        st.session_state.captcha = {'a': a, 'b': b, 'answer': answer}
+        return
+    
     # Créer le formulaire
     with st.form(key="contact_form"):
         # Ajouter le honeypot
@@ -544,16 +576,20 @@ def display_contact_form():
         contact_col1, contact_col2 = st.columns(2)
         
         with contact_col1:
-            name = st.text_input("Nom et Prénom *")
-            phone = st.text_input("Téléphone")
+            name = st.text_input("Nom et Prénom *", 
+                               value=st.session_state.form_values['name'])
+            phone = st.text_input("Téléphone",
+                                value=st.session_state.form_values['phone'])
             
         with contact_col2:
-            email = st.text_input("Email *")
+            email = st.text_input("Email *",
+                                value=st.session_state.form_values['email'])
         
         message = st.text_area(
             "Votre message *",
             height=120,
-            placeholder="Décrivez brièvement votre situation et vos attentes..."
+            placeholder="Décrivez brièvement votre situation et vos attentes...",
+            value=st.session_state.form_values['message']
         )
         
         # Captcha mathématique
@@ -565,6 +601,8 @@ def display_contact_form():
             captcha_answer = st.text_input("Réponse *", key="captcha_input", label_visibility="collapsed")
         
         honeypot = st.text_input("Laissez ce champ vide", key="honeypot", label_visibility="collapsed")
+        
+        # Style pour le bouton
         st.markdown(
             """<style>[data-testid="stFormSubmitButton"] { margin-top: 10px; }</style>""",
             unsafe_allow_html=True
@@ -573,6 +611,14 @@ def display_contact_form():
         submit_button = st.form_submit_button("Envoyer le message")
     
     if submit_button:
+        # Sauvegarder les valeurs du formulaire
+        st.session_state.form_values = {
+            'name': name,
+            'email': email,
+            'phone': phone,
+            'message': message
+        }
+        
         # Vérifier les champs obligatoires
         if not name or not email or not message or not captcha_answer:
             st.error("Veuillez remplir tous les champs obligatoires (*)")
@@ -593,19 +639,18 @@ def display_contact_form():
             success = send_contact_email(name, email, phone, message)
             
         if success:
-            st.success("""
-            ✅ Votre message a bien été envoyé ! 
-            Nous vous recontacterons dans les plus brefs délais.
-            """)
-            # Générer un nouveau captcha
-            a, b, answer = anti_spam.generate_math_captcha()
-            st.session_state.captcha = {'a': a, 'b': b, 'answer': answer}
-            # Recharger la page pour réinitialiser le formulaire
-            st.experimental_rerun()
+            # Marquer le formulaire comme soumis avec succès
+            st.session_state.form_submitted = True
+            st.session_state.form_values = {
+                'name': '',
+                'email': '',
+                'phone': '',
+                'message': ''
+            }
         else:
             st.error("""
             ❌ Une erreur est survenue lors de l'envoi du message. 
-            Veuillez réessayer ou nous contacter directement par téléphone.
+            Veuillez réessayer ou nous contacter directement.
             """)
 
 def main():
