@@ -357,21 +357,21 @@ def get_detailed_analysis(question: str, client_type: str, urgency: str, domaine
 Question : {question}
 Type de client : {client_type}
 Degré d'urgence : {urgency}
-Domaine concerné : {domaine}
+Domaine recommandé : {domaine}
 Prestation recommandée : {prestation}
 
-Structurez votre réponse en trois parties séparées par des lignes vides :
+Structurez votre réponse en trois parties clairement séparées par des lignes vides :
 
-Votre analyse détaillée de la situation, des enjeux et des implications en langage accessible et en tenant compte du type de client et du degré d'urgence.
+1. Analyse détaillée :
+Fournissez une analyse concise mais détaillée du cas, en tenant compte du type de client et du degré d'urgence.
 
-Éléments spécifiques (format JSON strict) :
+2. Éléments spécifiques utilisés (format JSON strict) :
 {{"domaine": {{"nom": "nom_du_domaine", "description": "description_du_domaine"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "description_de_la_prestation"}}}}
 
-Sources d'information :
+3. Sources d'information :
 Listez les sources d'information utilisées pour cette analyse, si applicable.
 
 Assurez-vous que chaque partie est clairement séparée et que le JSON dans la partie 2 est valide et strict."""
-Assurez-vous que le langage reste accessible tout en étant précis."""
 
     try:
         response = client.chat.completions.create(
@@ -383,7 +383,6 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
             temperature=0.3,
             max_tokens=1000
         )
-        
         content = response.choices[0].message.content.strip()
         logger.info(f"Réponse brute de l'API : {content}")
 
@@ -393,7 +392,6 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
         
         elements_used = {}
         if len(parts) > 1:
-
             try:
                 json_part = next((part for part in parts if '{' in part and '}' in part), None)
                 if json_part:
@@ -402,24 +400,22 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
                 else:
                     logger.warning("Aucun JSON valide trouvé dans la réponse.")
                     elements_used = {
-                        "domaine": {"nom": domaine, "description": "Information non fournie"},
-                        "prestation": {"nom": prestation, "description": "Information non fournie"}
+                        "domaine": {"nom": domaine, "description": "Information non fournie par l'API"},
+                        "prestation": {"nom": prestation, "description": "Information non fournie par l'API"}
                     }
             except json.JSONDecodeError as e:
                 logger.error(f"Erreur de décodage JSON : {e}")
                 elements_used = {
-                    "domaine": {"nom": domaine, "description": "Erreur dans l'analyse"},
-                    "prestation": {"nom": prestation, "description": "Erreur dans l'analyse"}
+                    "domaine": {"nom": domaine, "description": "Erreur dans l'analyse de la réponse"},
+                    "prestation": {"nom": prestation, "description": "Erreur dans l'analyse de la réponse"}
                 }
-        
-        # Récupérer uniquement les sources juridiques
-        sources = ''
-        sources_part = next((part for part in parts if "Sources d'information :" in part 
-                           or any(keyword in part.lower() for keyword in ["code", "article", "loi", "jurisprudence"])), None)
-        if sources_part:
-            sources = sources_part.replace("Sources juridiques :", "").strip()
         else:
-            sources = "Aucune source spécifique mentionnée."
+            elements_used = {
+                "domaine": {"nom": domaine, "description": "Information non disponible"},
+                "prestation": {"nom": prestation, "description": "Information non disponible"}
+            }
+        
+        sources = parts[2] if len(parts) > 2 else "Aucune source spécifique mentionnée."
 
         return analysis, elements_used, sources
     except Exception as e:
@@ -428,6 +424,8 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
             "domaine": {"nom": domaine, "description": "Erreur dans l'analyse"},
             "prestation": {"nom": prestation, "description": "Erreur dans l'analyse"}
         }, "Non disponible en raison d'une erreur."
+
+
 
 def display_analysis_progress():
     steps = {
