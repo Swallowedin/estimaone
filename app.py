@@ -640,6 +640,55 @@ def display_contact_form():
             Veuillez réessayer ou nous contacter directement par téléphone.
             """)
 
+def get_dynamic_client_type_fields():
+    """
+    Gère les champs dynamiques selon le type de client
+    Retourne un dictionnaire avec toutes les informations collectées
+    """
+    client_info = {}
+    
+    client_type = st.selectbox("Vous êtes :", ("Particulier", "Professionnel"))
+    client_info["type_principal"] = client_type
+    
+    if client_type == "Professionnel":
+        sub_type = st.selectbox(
+            "Type d'organisation :",
+            [
+                "Entreprise",
+                "Profession libérale",
+                "Association",
+                "Administration",
+                "Collectivité"
+            ]
+        )
+        client_info["sous_type"] = sub_type
+        
+        if sub_type == "Entreprise":
+            client_info["taille"] = st.selectbox(
+                "Taille de l'entreprise :",
+                [
+                    "TPE (moins de 10 salariés)",
+                    "PME (10 à 250 salariés)",
+                    "ETI (250 à 5000 salariés)",
+                    "Grande entreprise"
+                ]
+            )
+            
+        if sub_type in ["Entreprise", "Profession libérale"]:
+            client_info["secteur"] = st.selectbox(
+                "Secteur d'activité :",
+                [
+                    "Commerce",
+                    "Services",
+                    "Industrie",
+                    "BTP",
+                    "Tech",
+                    "Autre"
+                ]
+            )
+    
+    return client_info
+
 def main():
     apply_custom_css()
     
@@ -653,9 +702,10 @@ def main():
     current_time = time.time()
     if current_time - st.session_state['last_keep_alive'] > 3540:  # 59 minutes
         st.session_state['last_keep_alive'] = current_time
-        st.experimental_rerun()
+        st.rerun()
 
-    client_type = st.selectbox("Vous êtes :", ("Particulier", "Entreprise"))
+    # Collecte des informations client avec les champs dynamiques
+    client_info = get_dynamic_client_type_fields()
     urgency = st.selectbox("Degré d'urgence :", ("Normal", "Urgent"))
 
     exemple_cas = """Exemple : Mon voisin a construit une extension de sa maison qui empiète de 50 cm sur mon terrain. J'ai essayé de lui en parler à l'amiable, mais il refuse de reconnaître le problème. Je souhaite connaître mes droits et les démarches possibles pour résoudre cette situation, si possible sans aller jusqu'au procès."""
@@ -667,7 +717,7 @@ def main():
     )
 
     if st.button("Obtenir une estimation grâce à l'intelligence artificielle"):
-        # Vérifier la limite globale d'abord
+        # Vérification des limites
         peut_continuer_global, requetes_restantes = check_global_limit()
         if not peut_continuer_global:
             st.error(f"""
@@ -677,7 +727,6 @@ def main():
             """)
             return
 
-        # Vérifier ensuite le rate limit individuel
         peut_continuer, temps_attente = rate_limiter.check_limit(get_session_id())
         if not peut_continuer:
             st.warning(f"""
@@ -687,117 +736,143 @@ def main():
             return
 
         if question and question != exemple_cas:
-            loading_placeholder = st.empty()
-            with loading_placeholder:
-                display_loading_animation()
+            progress_container = st.empty()
             
-            # Analyse avec timeout
-            result, timeout = execute_with_timeout(
-                analyze_question,
-                question, 
-                client_type, 
-                urgency,
-                timeout_seconds=30
-            )
-            
-            if timeout:
-                loading_placeholder.empty()
-                st.error("Désolé, l'analyse a pris trop de temps. Veuillez réessayer ou nous contacter directement.")
-                return
+            with progress_container:
+                # Afficher la progression à la place du spinner
+                display_analysis_progress()
                 
-            domaine, prestation, confidence, is_relevant = result
-            
-            if not domaine or not prestation:
-                loading_placeholder.empty()
-                st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
-                return
+                # Préparation des informations client pour l'analyse
+                client_type_desc = f"{client_info['type_principal']}"
+                if client_info['type_principal'] == "Professionnel":
+                    client_type_desc += f" - {client_info['sous_type']}"
+                    if 'taille' in client_info:
+                        client_type_desc += f" ({client_info['taille']})"
+                    if 'secteur' in client_info:
+                        client_type_desc += f" - Secteur {client_info['secteur']}"
+                
+                # Analyse avec timeout
+                result, timeout = execute_with_timeout(
+                    analyze_question,
+                    question,
+                    client_type_desc,
+                    urgency,
+                    timeout_seconds=30
+                )
+                
+                if timeout:
+                    progress_container.empty()
+                    st.error("Désolé, l'analyse a pris trop de temps. Veuillez réessayer ou nous contacter directement.")
+                    return
+                    
+                domaine, prestation, confidence, is_relevant = result
+                
+                if not domaine or not prestation:
+                    progress_container.empty()
+                    st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
+                    return
 
-            forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(domaine, prestation, urgency)
-            
-            # Ajout du logging avec l'estimation
-            if forfait is not None:
-                estimation = {
-                    'forfait': forfait,
-                    'domaine': domaine_label,
-                    'prestation': prestation_label
+                detailed_analysis, elements_used, sources = get_detailed_analysis(
+                    question, client_type_desc, urgency, domaine, prestation
+                )
+                
+                # Préparation du résumé d'analyse
+                analysis_details = {
+                    'domaine': elements_used['domaine']['nom'],
+                    'prestation': elements_used['prestation']['nom'],
+                    'points_cles': elements_used['domaine'].get('description', 
+                        "Analyse en cours de traitement...")
                 }
-                log_question(question, client_type, urgency, estimation)
-            else:
-                log_question(question, client_type, urgency)
+                
+                # Vider le container de progression
+                progress_container.empty()
+                
+                # Afficher le résumé avant l'estimation
+                display_analysis_summary(question, analysis_details)
 
-            if forfait is None:
-                loading_placeholder.empty()
-                st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
+                # Calcul de l'estimation
+                forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(
+                    domaine, prestation, urgency
+                )
+                
+                if forfait is not None:
+                    estimation = {
+                        'forfait': forfait,
+                        'domaine': domaine_label,
+                        'prestation': prestation_label
+                    }
+                    log_question(question, client_type_desc, urgency, estimation)
+                else:
+                    log_question(question, client_type_desc, urgency)
+
+                if forfait is None:
+                    st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
+                    for detail in calcul_details:
+                        st.write(detail)
+                    st.info("Pour obtenir une estimation précise, veuillez nous contacter directement.")
+                    return
+
+                st.success("Analyse terminée. Voici votre estimation :")
+                
+                st.markdown(f"""
+                <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h2 style="color: #1f618d;">Forfait estimé</h2>
+                    <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
+                        À partir de <span style="color: #e74c3c;">{forfait} €HT</span>
+                    </p>
+                    <p style="font-style: italic;">Domaine : {domaine_label}</p>
+                    <p style="font-style: italic;">Prestation : {prestation_label}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.info("""
+                📌 Note importante : Cette estimation est fournie à titre indicatif et peut varier en fonction de la complexité spécifique de votre situation. 
+                Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Pour les particuliers, il est possible de payer en plusieurs fois.
+                """)
+
+                st.markdown("---")
+
+                st.subheader("Indice de confiance de l'analyse")
+                st.progress(confidence)
+                st.write(f"Confiance : {confidence:.2%}")
+
+                if confidence < 0.5:
+                    st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
+                elif not is_relevant:
+                    st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
+
+                st.markdown("### 💡 Recommandations")
+                st.success("""
+                **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
+                nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
+                - Évaluer précisément la complexité de votre cas
+                - Vous fournir des conseils juridiques adaptés
+                - Élaborer une stratégie sur mesure pour votre situation
+                """)
+
+                st.markdown("---")
+
+                st.subheader("Détails du forfait")
                 for detail in calcul_details:
                     st.write(detail)
-                st.info("Pour obtenir une estimation précise, veuillez nous contacter directement.")
-                return
 
-            detailed_analysis, elements_used, sources = get_detailed_analysis(question, client_type, urgency, domaine, prestation)
+                st.subheader("Analyse détaillée")
+                st.write(detailed_analysis)
 
-            loading_placeholder.empty()
-
-            st.success("Analyse terminée. Voici votre estimation :")
-            
-            st.markdown(f"""
-            <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
-                <h2 style="color: #1f618d;">Forfait estimé</h2>
-                <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
-                    À partir de <span style="color: #e74c3c;">{forfait} €HT</span>
-                </p>
-                <p style="font-style: italic;">Domaine : {domaine_label}</p>
-                <p style="font-style: italic;">Prestation : {prestation_label}</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-            st.info("""
-            📌 Note importante : Cette estimation est fournie à titre indicatif et peut varier en fonction de la complexité spécifique de votre situation. 
-            Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Pour les particuliers, il est possible de payer en plusieurs fois.
-            """)
-
-            st.markdown("---")
-
-            st.subheader("Indice de confiance de l'analyse")
-            st.progress(confidence)
-            st.write(f"Confiance : {confidence:.2%}")
-
-            if confidence < 0.5:
-                st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
-            elif not is_relevant:
-                st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
-
-            st.markdown("### 💡 Recommandations")
-            st.success("""
-            **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
-            nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
-            - Évaluer précisément la complexité de votre cas
-            - Vous fournir des conseils juridiques adaptés
-            - Élaborer une stratégie sur mesure pour votre situation
-            """)
-
-            st.markdown("---")
-
-            st.subheader("Détails du forfait")
-            for detail in calcul_details:
-                st.write(detail)
-
-            st.subheader("Analyse détaillée")
-            st.write(detailed_analysis)
-
-            expander = st.expander("Voir les éléments spécifiques pris en compte")
-            with expander:
-                if isinstance(elements_used, dict) and "domaine" in elements_used and "prestation" in elements_used:
-                    elements_used["domaine"]["nom"] = domaine_label
-                    elements_used["prestation"]["nom"] = prestation_label
-                    st.json(elements_used)
-                else:
-                    st.warning("Les éléments spécifiques n'ont pas pu être analysés de manière optimale.")
-                    st.json(elements_used)
-
-            if sources and sources != "Aucune source spécifique mentionnée.":
-                expander = st.expander("Voir les sources d'information")
+                expander = st.expander("Voir les éléments spécifiques pris en compte")
                 with expander:
-                    st.write(sources)
+                    if isinstance(elements_used, dict) and "domaine" in elements_used and "prestation" in elements_used:
+                        elements_used["domaine"]["nom"] = domaine_label
+                        elements_used["prestation"]["nom"] = prestation_label
+                        st.json(elements_used)
+                    else:
+                        st.warning("Les éléments spécifiques n'ont pas pu être analysés de manière optimale.")
+                        st.json(elements_used)
+
+                if sources and sources != "Aucune source spécifique mentionnée.":
+                    expander = st.expander("Voir les sources d'information")
+                    with expander:
+                        st.write(sources)
 
         else:
             st.warning("Veuillez décrire votre cas avant de demander une estimation. N'utilisez pas l'exemple fourni tel quel.")
