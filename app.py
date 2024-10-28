@@ -783,18 +783,13 @@ def main():
                     'points_cles': elements_used['domaine'].get('description', 
                         "Analyse en cours de traitement...")
                 }
-                
-                # Vider le container de progression
-                progress_container.empty()
-                
-                # Afficher le résumé avant l'estimation
-                display_analysis_summary(question, analysis_details)
 
                 # Calcul de l'estimation
                 forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(
                     domaine, prestation, urgency
                 )
-                
+
+                # Logging
                 if forfait is not None:
                     estimation = {
                         'forfait': forfait,
@@ -806,73 +801,89 @@ def main():
                     log_question(question, client_type_desc, urgency)
 
                 if forfait is None:
+                    progress_container.empty()
                     st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
                     for detail in calcul_details:
                         st.write(detail)
                     st.info("Pour obtenir une estimation précise, veuillez nous contacter directement.")
                     return
 
-                st.success("Analyse terminée. Voici votre estimation :")
+                # Vider le container de progression
+                progress_container.empty()
                 
-                st.markdown(f"""
-                <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
-                    <h2 style="color: #1f618d;">Forfait estimé</h2>
-                    <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
-                        À partir de <span style="color: #e74c3c;">{forfait} €HT</span>
-                    </p>
-                    <p style="font-style: italic;">Domaine : {domaine_label}</p>
-                    <p style="font-style: italic;">Prestation : {prestation_label}</p>
-                </div>
-                """, unsafe_allow_html=True)
+                # Container principal pour les résultats
+                with st.container():
+                    # 1. Résumé de l'analyse
+                    display_analysis_summary(question, analysis_details)
 
-                st.info("""
-                📌 Note importante : Cette estimation est fournie à titre indicatif et peut varier en fonction de la complexité spécifique de votre situation. 
-                Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Pour les particuliers, il est possible de payer en plusieurs fois.
-                """)
+                    # 2. Estimation
+                    st.markdown(f"""
+                    <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h2 style="color: #1f618d;">Forfait estimé</h2>
+                        <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
+                            À partir de <span style="color: #e74c3c;">{forfait} €HT</span>
+                        </p>
+                        <p style="font-style: italic;">Domaine : {domaine_label}</p>
+                        <p style="font-style: italic;">Prestation : {prestation_label}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-                st.markdown("---")
+                    st.info("""
+                    📌 Note importante : Cette estimation est fournie à titre indicatif et peut varier en fonction de la complexité spécifique de votre situation. 
+                    Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Pour les particuliers, il est possible de payer en plusieurs fois.
+                    """)
 
-                st.subheader("Indice de confiance de l'analyse")
-                st.progress(confidence)
-                st.write(f"Confiance : {confidence:.2%}")
+                    st.markdown("---")
 
-                if confidence < 0.5:
-                    st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
-                elif not is_relevant:
-                    st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
+                    # 3. Indicateurs de confiance et avertissements
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        st.subheader("Indice de confiance")
+                        st.progress(confidence)
+                        st.write(f"Confiance : {confidence:.2%}")
+                    with col2:
+                        if confidence < 0.5:
+                            st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
+                        elif not is_relevant:
+                            st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
-                st.markdown("### 💡 Recommandations")
-                st.success("""
-                **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
-                nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
-                - Évaluer précisément la complexité de votre cas
-                - Vous fournir des conseils juridiques adaptés
-                - Élaborer une stratégie sur mesure pour votre situation
-                """)
+                    # 4. Recommandations
+                    st.markdown("### 💡 Recommandations")
+                    st.success("""
+                    **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
+                    nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
+                    - Évaluer précisément la complexité de votre cas
+                    - Vous fournir des conseils juridiques adaptés
+                    - Élaborer une stratégie sur mesure pour votre situation
+                    """)
 
-                st.markdown("---")
+                    st.markdown("---")
 
-                st.subheader("Détails du forfait")
-                for detail in calcul_details:
-                    st.write(detail)
+                    # 5. Détails et analyse dans des colonnes
+                    details_col1, details_col2 = st.columns(2)
+                    
+                    with details_col1:
+                        st.subheader("Détails du forfait")
+                        for detail in calcul_details:
+                            st.write(detail)
 
-                st.subheader("Analyse détaillée")
-                st.write(detailed_analysis)
+                    with details_col2:
+                        st.subheader("Analyse détaillée")
+                        st.write(detailed_analysis)
 
-                expander = st.expander("Voir les éléments spécifiques pris en compte")
-                with expander:
-                    if isinstance(elements_used, dict) and "domaine" in elements_used and "prestation" in elements_used:
-                        elements_used["domaine"]["nom"] = domaine_label
-                        elements_used["prestation"]["nom"] = prestation_label
-                        st.json(elements_used)
-                    else:
-                        st.warning("Les éléments spécifiques n'ont pas pu être analysés de manière optimale.")
-                        st.json(elements_used)
+                    # 6. Informations supplémentaires dans des expandeurs
+                    with st.expander("Voir les éléments spécifiques pris en compte"):
+                        if isinstance(elements_used, dict) and "domaine" in elements_used and "prestation" in elements_used:
+                            elements_used["domaine"]["nom"] = domaine_label
+                            elements_used["prestation"]["nom"] = prestation_label
+                            st.json(elements_used)
+                        else:
+                            st.warning("Les éléments spécifiques n'ont pas pu être analysés de manière optimale.")
+                            st.json(elements_used)
 
-                if sources and sources != "Aucune source spécifique mentionnée.":
-                    expander = st.expander("Voir les sources d'information")
-                    with expander:
-                        st.write(sources)
+                    if sources and sources != "Aucune source spécifique mentionnée.":
+                        with st.expander("Voir les sources d'information"):
+                            st.write(sources)
 
         else:
             st.warning("Veuillez décrire votre cas avant de demander une estimation. N'utilisez pas l'exemple fourni tel quel.")
