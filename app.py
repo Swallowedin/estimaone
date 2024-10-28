@@ -541,30 +541,31 @@ def display_contact_form():
         # Ajouter le honeypot
         anti_spam.add_honeypot()
         
-        contact_col1, contact_col2 = st.columns(2)
+        # Création de deux colonnes principales : une pour les infos de contact, une pour le message
+        form_col1, form_col2 = st.columns([1, 1])
         
-        with contact_col1:
-            name = st.text_input("Nom et Prénom *")
-            phone = st.text_input("Téléphone")
+        with form_col1:
+            # Sous-colonnes pour les informations de contact
+            contact_col1, contact_col2 = st.columns(2)
             
-        with contact_col2:
-            email = st.text_input("Email *")
+            with contact_col1:
+                name = st.text_input("Nom et Prénom *")
+                phone = st.text_input("Téléphone")
+                
+            with contact_col2:
+                email = st.text_input("Email *")
+                st.text_input(f"Combien font {st.session_state.captcha['a']} + {st.session_state.captcha['b']} ? *", 
+                            key="captcha_input")
+            
+            honeypot = st.text_input("Laissez ce champ vide", key="honeypot", label_visibility="collapsed")
         
-        message = st.text_area(
-            "Votre message *",
-            height=120,
-            placeholder="Décrivez brièvement votre situation et vos attentes..."
-        )
+        with form_col2:
+            message = st.text_area(
+                "Votre message *",
+                height=200,
+                placeholder="Décrivez brièvement votre situation et vos attentes..."
+            )
         
-        # Captcha mathématique
-        st.markdown("**Vérification anti-spam**")
-        captcha_col1, captcha_col2 = st.columns([2, 1])
-        with captcha_col1:
-            st.write(f"Combien font {st.session_state.captcha['a']} + {st.session_state.captcha['b']} ?")
-        with captcha_col2:
-            captcha_answer = st.text_input("Réponse *", key="captcha_input", label_visibility="collapsed")
-        
-        honeypot = st.text_input("Laissez ce champ vide", key="honeypot", label_visibility="collapsed")
         st.markdown(
             """<style>[data-testid="stFormSubmitButton"] { margin-top: 10px; }</style>""",
             unsafe_allow_html=True
@@ -573,6 +574,9 @@ def display_contact_form():
         submit_button = st.form_submit_button("Envoyer le message")
     
     if submit_button:
+        # On récupère la réponse du captcha
+        captcha_answer = st.session_state.captcha_input
+        
         # Vérifier les champs obligatoires
         if not name or not email or not message or not captcha_answer:
             st.error("Veuillez remplir tous les champs obligatoires (*)")
@@ -593,14 +597,7 @@ def display_contact_form():
             success = send_contact_email(name, email, phone, message)
             
         if success:
-            st.success("""
-            ✅ Votre message a bien été envoyé ! 
-            Nous vous recontacterons dans les plus brefs délais.
-            """)
-            # Générer un nouveau captcha
-            a, b, answer = anti_spam.generate_math_captcha()
-            st.session_state.captcha = {'a': a, 'b': b, 'answer': answer}
-            # Recharger la page pour réinitialiser le formulaire
+            st.success("✅ Message envoyé")
             st.rerun()
         else:
             st.error("""
