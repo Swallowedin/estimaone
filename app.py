@@ -362,8 +362,7 @@ Prestation recommandée : {prestation}
 
 Structurez votre réponse en trois parties clairement séparées par des lignes vides :
 
-1. Analyse détaillée :
-Fournissez une analyse concise mais détaillée du cas, en tenant compte du type de client et du degré d'urgence et en vous adressant directement à ce dernier.
+1. Fournissez une analyse concise mais détaillée du cas, en tenant compte du type de client et du degré d'urgence et en vous adressant directement à ce dernier.
 
 2. Éléments spécifiques utilisés (format JSON strict) :
 {{"domaine": {{"nom": "nom_du_domaine", "description": "description_du_domaine"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "description_de_la_prestation"}}}}
