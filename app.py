@@ -353,26 +353,34 @@ def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int
         return None, None, [f"Erreur lors du calcul de l'estimation : {str(e)}"], {}, "", ""
 
 def get_detailed_analysis(question: str, client_type: str, urgency: str, domaine: str, prestation: str) -> Tuple[str, Dict[str, Any], str]:
-    prompt = f"""En tant qu'assistant juridique virtuel pour View Avocats, analysez la question suivante et expliquez votre raisonnement pour le choix du domaine juridique et de la prestation.
+    prompt = f"""En tant qu'assistant juridique virtuel pour View Avocats, analysez la question suivante en utilisant un langage clair et accessible aux non-juristes.
 
 Question : {question}
 Type de client : {client_type}
 Degré d'urgence : {urgency}
-Domaine recommandé : {domaine}
+Domaine concerné : {domaine}
 Prestation recommandée : {prestation}
 
-Structurez votre réponse en trois parties clairement séparées par des lignes vides :
+Structurez votre réponse en expliquant :
+1. La situation et les enjeux identifiés dans un langage simple
+2. Les démarches possibles et leurs implications concrètes
+3. Pourquoi nous recommandons cette prestation en particulier
 
-1. Analyse détaillée :
-Fournissez une analyse concise mais détaillée du cas, en tenant compte du type de client et du degré d'urgence.
+Évitez le jargon juridique. Si vous devez utiliser des termes techniques, expliquez-les simplement.
+Rédigez comme si vous parliez à quelqu'un qui n'a aucune connaissance juridique.
 
-2. Éléments spécifiques utilisés (format JSON strict) :
-{{"domaine": {{"nom": "nom_du_domaine", "description": "description_du_domaine"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "description_de_la_prestation"}}}}
+Structurez votre réponse en trois parties séparées par des lignes vides :
+
+1. Analyse en langage simple :
+Expliquez la situation de manière accessible, sans jargon juridique.
+
+2. Éléments spécifiques (format JSON strict) :
+{{"domaine": {{"nom": "nom_du_domaine", "description": "explication simple du domaine juridique"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "pourquoi cette solution est adaptée"}}}}
 
 3. Sources d'information :
-Listez les sources d'information utilisées pour cette analyse, si applicable.
+Listez les sources principales qui justifient notre approche.
 
-Assurez-vous que chaque partie est clairement séparée et que le JSON dans la partie 2 est valide et strict."""
+Assurez-vous que le langage reste accessible tout en étant précis."""
 
     try:
         response = client.chat.completions.create(
