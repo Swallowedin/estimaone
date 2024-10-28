@@ -536,11 +536,15 @@ def display_contact_form():
     anti_spam = AntiSpam()
     anti_spam.initialize_session()
     
+    # CSS pour cacher complètement le honeypot
+    st.markdown("""
+        <style>
+            #honeypot { display: none !important; }
+        </style>
+    """, unsafe_allow_html=True)
+    
     # Créer le formulaire
     with st.form(key="contact_form"):
-        # Ajouter le honeypot
-        anti_spam.add_honeypot()
-        
         # Création de deux colonnes principales
         form_col1, form_col2 = st.columns([1, 1])
         
@@ -554,7 +558,13 @@ def display_contact_form():
                          label_visibility="visible",
                          max_chars=3)
             
-            honeypot = st.text_input("Laissez ce champ vide", key="honeypot", label_visibility="collapsed")
+            # Honeypot vraiment invisible
+            st.markdown("""
+                <div id="honeypot" style="display:none;">
+                    <input type="text" name="website" value="">
+                </div>
+            """, unsafe_allow_html=True)
+            honeypot = st.session_state.get('website', '')
         
         with form_col2:
             message = st.text_area(
