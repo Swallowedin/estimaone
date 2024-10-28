@@ -19,6 +19,27 @@ import random
 MAX_GLOBAL_REQUESTS = 100  # Maximum de requêtes globales
 RESET_INTERVAL = 600     # 10 minutes en secondes
 
+def display_analysis_summary(question: str, analysis_details: Dict):
+    """
+    Affiche un résumé de l'analyse avant l'estimation
+    """
+    st.info(f"""
+    📋 Synthèse de notre analyse :
+    
+    **Votre situation :**
+    {question}
+    
+    **Notre compréhension :**
+    - Domaine juridique identifié : {analysis_details['domaine']}
+    - Type de prestation adaptée : {analysis_details['prestation']}
+    
+    **Points clés identifiés :**
+    - {analysis_details['points_cles']}
+    
+    En fonction de ces éléments, nous vous proposons l'estimation suivante :
+    """)
+
+
 def check_global_limit() -> Tuple[bool, int]:
     """
     Vérifie la limite globale de requêtes
