@@ -433,7 +433,7 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
 
 def display_analysis_progress():
     steps = {
-        1: "Analyse de votre demande...",
+        1: "Analyse de la situation...",
         2: "Identification du domaine juridique...",
         3: "Calcul de l'estimation...",
         4: "Génération du rapport d'analyse..."
@@ -446,7 +446,7 @@ def display_analysis_progress():
         progress = step_num / len(steps)
         progress_bar.progress(progress)
         progress_text.write(f"⏳ {step_desc}")
-        time.sleep(0.8)
+        time.sleep(1.6)
     
     return progress_text, progress_bar
 
@@ -848,19 +848,6 @@ def main():
                 """)
 
                 st.markdown("---")
-
-                # 5. Détails dans des colonnes
-                details_col1, details_col2 = st.columns(2)
-                
-                with details_col1:
-                    st.subheader("Détails du forfait")
-                    for detail in calcul_details:
-                        st.write(detail)
-
-                with details_col2:
-                    if isinstance(elements_used, dict) and "prestation" in elements_used:
-                        st.subheader("Procédure suggérée")
-                        st.write(elements_used['prestation'].get('description', 'Non spécifié'))
 
                 # 6. Informations supplémentaires
                 if sources and sources != "Aucune source spécifique mentionnée.":
