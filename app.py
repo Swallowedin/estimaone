@@ -541,24 +541,18 @@ def display_contact_form():
         # Ajouter le honeypot
         anti_spam.add_honeypot()
         
-        # Création de deux colonnes principales : une pour les infos de contact, une pour le message
+        # Création de deux colonnes principales
         form_col1, form_col2 = st.columns([1, 1])
         
         with form_col1:
-            # Sous-colonnes pour les informations de contact
-            contact_col1, contact_col2 = st.columns(2)
-            
-            with contact_col1:
-                name = st.text_input("Nom et Prénom *")
-                phone = st.text_input("Téléphone")
-                
-            with contact_col2:
-                email = st.text_input("Email *")
-                captcha_cols = st.columns([2.5, 1])
-                with captcha_cols[0]:
-                    st.write(f"{st.session_state.captcha['a']} + {st.session_state.captcha['b']} = ")
-                with captcha_cols[1]:
-                    captcha_answer = st.text_input("", key="captcha_input", label_visibility="collapsed")
+            name = st.text_input("Nom et Prénom *")
+            email = st.text_input("Email *")
+            phone = st.text_input("Téléphone")
+            # Captcha sur une ligne
+            st.text_input(f"{st.session_state.captcha['a']} + {st.session_state.captcha['b']} = ", 
+                         key="captcha_input", 
+                         label_visibility="visible",
+                         max_chars=3)
             
             honeypot = st.text_input("Laissez ce champ vide", key="honeypot", label_visibility="collapsed")
         
@@ -569,14 +563,12 @@ def display_contact_form():
                 placeholder="Décrivez brièvement votre situation et vos attentes..."
             )
         
-        st.markdown(
-            """<style>[data-testid="stFormSubmitButton"] { margin-top: 10px; }</style>""",
-            unsafe_allow_html=True
-        )
-        
+        # Bouton de soumission
         submit_button = st.form_submit_button("Envoyer le message")
     
     if submit_button:
+        captcha_answer = st.session_state.captcha_input
+        
         # Vérifier les champs obligatoires
         if not name or not email or not message or not captcha_answer:
             st.error("Veuillez remplir tous les champs obligatoires (*)")
@@ -604,6 +596,7 @@ def display_contact_form():
             ❌ Une erreur est survenue lors de l'envoi du message. 
             Veuillez réessayer ou nous contacter directement par téléphone.
             """)
+
 def main():
     apply_custom_css()
     
