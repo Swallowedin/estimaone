@@ -526,14 +526,6 @@ def display_contact_form():
     """
     Affiche et gère le formulaire de contact avec protection anti-spam
     """
-    # Vérifier si un message vient d'être envoyé
-    if 'message_sent' in st.session_state and st.session_state.message_sent:
-        st.success("✅ Message envoyé")
-        # Réinitialiser le flag
-        st.session_state.message_sent = False
-        st.rerun()
-        return
-
     st.markdown("### 📬 Contactez-nous")
     st.write("""
     Vous souhaitez plus d'informations ou prendre rendez-vous ? 
@@ -550,6 +542,9 @@ def display_contact_form():
             #honeypot { display: none !important; }
         </style>
     """, unsafe_allow_html=True)
+
+    # Container pour le message de succès
+    success_message = st.empty()
     
     # Créer le formulaire
     with st.form(key="contact_form"):
@@ -607,9 +602,7 @@ def display_contact_form():
             success = send_contact_email(name, email, phone, message)
             
         if success:
-            # Marquer le message comme envoyé
-            st.session_state.message_sent = True
-            st.rerun()
+            success_message.success("✅ Message envoyé")
         else:
             st.error("""
             ❌ Une erreur est survenue lors de l'envoi du message. 
