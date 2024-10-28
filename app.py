@@ -809,13 +809,12 @@ def main():
 
                 # 2. Estimation
                 st.markdown(f"""
-                <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
-                    <h2 style="color: #1f618d;">Estimation de la prestation</h2>
-                    <p style="font-size: 24px; font-weight: bold; color: #417068;">
+                <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; text-align: center;">
+                    <h3 style="color: #1f618d;">Estimation de la prestation</h3>
+                    <p style="font-size: 20px; font-weight: bold; color: #417068; margin: 10px 0;">
                         À partir de <span style="color: #3c7be7;">{forfait} €HT</span>
                     </p>
-                    <p style="font-style: italic;">Domaine : {domaine_label}</p>
-                    <p style="font-style: italic;">Prestation : {prestation_label}</p>
+                    <p style="font-style: italic; margin: 5px 0;">Domaine : {domaine_label} • Prestation : {prestation_label}</p>
                 </div>
                 """, unsafe_allow_html=True)
 
