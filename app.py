@@ -414,17 +414,27 @@ Assurez-vous que chaque partie est clairement séparée et que le JSON dans la p
             "prestation": {"nom": prestation, "description": "Erreur dans l'analyse"}
         }, "Non disponible en raison d'une erreur."
 
-def display_loading_animation():
-    return st.markdown("""
-    <div style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
-        <svg class="loading-icon" width="50" height="50" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,1,1,1,8-8A8,8,0,0,1,12,20Z" opacity=".25"/>
-            <path d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z"/>
-        </svg>
-        <p style="margin-top: 10px; font-weight: bold;">Notre intelligence artificielle analyse votre demande...</p>
-        <p>Votre estimation arrive dans quelques secondes !</p>
-    </div>
-    """, unsafe_allow_html=True)
+def display_analysis_progress():
+    """
+    Affiche une barre de progression avec les étapes de l'analyse
+    """
+    progress_placeholder = st.empty()
+    
+    steps = {
+        1: "Analyse de votre demande...",
+        2: "Identification du domaine juridique...",
+        3: "Calcul de l'estimation...",
+        4: "Génération du rapport d'analyse..."
+    }
+    
+    for step_num, step_desc in steps.items():
+        progress = step_num / len(steps)
+        with progress_placeholder.container():
+            st.progress(progress)
+            st.write(f"⏳ {step_desc}")
+        time.sleep(0.8)  # Délai entre chaque étape
+    
+    progress_placeholder.empty()
 
 def send_contact_email(name: str, email: str, phone: str, message: str) -> bool:
     """
