@@ -360,22 +360,23 @@ Domaine concerné : {domaine}
 Prestation recommandée : {prestation}
 
 Structurez votre réponse en expliquant :
-1. La situation et les enjeux identifiés dans un langage simple
-2. Les démarches possibles et leurs implications concrètes
-3. Listez les sources principales qui justifient notre approche.
+- La situation et les enjeux identifiés dans un langage simple
+- Les démarches possibles et leurs implications concrètes
+- Listez les sources principales qui justifient notre approche.
 
 Évitez le jargon juridique. Si vous devez utiliser des termes techniques, expliquez-les simplement.
 Rédigez comme si vous parliez à quelqu'un qui n'a aucune connaissance juridique.
 
 Structurez votre réponse en trois parties séparées par des lignes vides :
 
-Expliquez la situation de manière accessible, sans jargon juridique.
+Analyse :
+[Votre analyse en langage accessible]
 
-2. Éléments spécifiques (format JSON strict) :
+Éléments spécifiques (format JSON strict) :
 {{"domaine": {{"nom": "nom_du_domaine", "description": "explication simple du domaine juridique"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "pourquoi cette solution est adaptée"}}}}
 
-3. Sources d'information :
-Listez les sources principales qui justifient notre approche.
+Sources :
+[Listez les sources principales qui justifient notre approche]
 
 Assurez-vous que le langage reste accessible tout en étant précis."""
 
@@ -433,22 +434,26 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
 
 def display_analysis_progress():
     steps = {
-        1: "Analyse de la situation...",
-        2: "Identification du domaine juridique...",
-        3: "Calcul de l'estimation...",
-        4: "Génération du rapport d'analyse..."
+        1: {"desc": "Examen de la situation...", "time": 3.0},
+        2: {"desc": "Étude du contexte...", "time": 3.0},
+        3: {"desc": "Analyse des sources juridiques...", "time": 1.5},
+        4: {"desc": "Détermination de la procédure adaptée...", "time": 1.0},
+        5: {"desc": "Évaluation des coûts...", "time": 1.2},
+        6: {"desc": "Finalisation de l'analyse...", "time": 3.2}
     }
     
     progress_text = st.empty()
     progress_bar = st.empty()
     
-    for step_num, step_desc in steps.items():
+    for step_num, step_info in steps.items():
         progress = step_num / len(steps)
         progress_bar.progress(progress)
-        progress_text.write(f"⏳ {step_desc}")
-        time.sleep(1.6)
+        progress_text.write(f"⏳ {step_info['desc']}")
+        time.sleep(step_info['time'])  # Utilise le temps spécifique pour chaque étape
     
     return progress_text, progress_bar
+
+
 
 def send_contact_email(name: str, email: str, phone: str, message: str) -> bool:
     """
@@ -809,20 +814,27 @@ def main():
 
                 # 2. Estimation
                 st.markdown(f"""
-                <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; text-align: center;">
-                    <h3 style="color: #1f618d;">Estimation de la prestation</h3>
-                    <p style="font-size: 20px; font-weight: bold; color: #417068; margin: 10px 0;">
-                        À partir de <span style="color: #3c7be7;">{forfait} €HT</span>
+                <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <h3 style="color: #1f618d; margin: 0;">Estimation de la prestation</h3>
+                    <p style="font-size: 22px; font-weight: bold; color: #417068; margin: 10px 0;">
+                        <span style="color: #3c7be7;">{forfait} €HT</span>
                     </p>
-                    <p style="font-style: italic; margin: 5px 0;">Domaine : {domaine_label} • Prestation : {prestation_label}</p>
+                    <small style="color: #666;">Pour {domaine_label.lower()} • {prestation_label}</small>
                 </div>
                 """, unsafe_allow_html=True)
+                
 
-                st.info("""
-                📌 Note importante : Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation. 
-                Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Si vous êtes un particulier, il est possible de payer en plusieurs fois.
-                """)
 
+                st.markdown("""
+                <div style="background-color: #fafafa; padding: 10px; border-left: 4px solid #3c7be7; border-radius: 4px;">
+                    <p style="margin: 0; color: #555;">
+                        📌 <strong>Note importante :</strong> Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation. 
+                    </p>
+                    <p style="margin: 5px 0 0 0; color: #666;">
+                        Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Si vous êtes un particulier, il est possible de payer en plusieurs fois.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
                 st.markdown("---")
 
                 # 3. Indicateurs de confiance et avertissements
