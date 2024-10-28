@@ -799,11 +799,11 @@ def main():
                     st.info("Pour obtenir une estimation précise, veuillez nous contacter directement.")
                     return
 
-                # Vider le container de progression
-                progress_container.empty()
-                
                 # Container principal pour les résultats
                 with st.container():
+                    # Maintenant on vide le container de progression seulement après avoir tout préparé
+                    progress_container.empty()
+                    
                     # 1. Résumé de l'analyse
                     st.info(f"""
                     📋 Notre compréhension de votre situation :
