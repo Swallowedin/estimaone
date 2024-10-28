@@ -350,8 +350,9 @@ def calculate_estimate(domaine: str, prestation: str, urgency: str) -> Tuple[int
         logger.exception(f"Erreur dans calculate_estimate: {str(e)}")
         return None, None, [f"Erreur lors du calcul de l'estimation : {str(e)}"], {}, "", ""
 
+
 def get_detailed_analysis(question: str, client_type: str, urgency: str, domaine: str, prestation: str) -> Tuple[str, Dict[str, Any], str]:
-    prompt = f"""En tant qu'assistant juridique virtuel pour View Avocats, analysez la question suivante en utilisant un langage clair et accessible aux non-juristes.
+    prompt = f"""En tant qu'assistant juridique virtuel pour View Avocats, analysez la question suivante et expliquez votre raisonnement pour le choix du domaine juridique et de la prestation en utilisant un langage clair et accessible aux non-juristes.
 
 Question : {question}
 Type de client : {client_type}
@@ -361,14 +362,15 @@ Prestation recommandée : {prestation}
 
 Structurez votre réponse en trois parties séparées par des lignes vides :
 
-Votre analyse détaillée de la situation, des enjeux et des implications en langage accessible
+Votre analyse détaillée de la situation, des enjeux et des implications en langage accessible et en tenant compte du type de client et du degré d'urgence.
 
 Éléments spécifiques (format JSON strict) :
-{{"domaine": {{"nom": "nom_du_domaine", "description": "explication simple du domaine juridique"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "pourquoi cette solution est adaptée"}}}}
+{{"domaine": {{"nom": "nom_du_domaine", "description": "description_du_domaine"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "description_de_la_prestation"}}}}
 
-Sources juridiques :
-[Listez uniquement les articles de loi, la jurisprudence et les textes juridiques pertinents]
+Sources d'information :
+Listez les sources d'information utilisées pour cette analyse, si applicable.
 
+Assurez-vous que chaque partie est clairement séparée et que le JSON dans la partie 2 est valide et strict."""
 Assurez-vous que le langage reste accessible tout en étant précis."""
 
     try:
@@ -381,19 +383,17 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
             temperature=0.3,
             max_tokens=1000
         )
+        
         content = response.choices[0].message.content.strip()
         logger.info(f"Réponse brute de l'API : {content}")
 
         parts = content.split('\n\n')
         
-        # Récupérer l'analyse complète (première partie)
         analysis = parts[0] if len(parts) > 0 else "Analyse non disponible."
-        if analysis.startswith("Analyse :"):
-            analysis = analysis[8:].strip()  # Retire juste le mot "Analyse :" s'il est présent
         
-        # Traitement des éléments spécifiques (JSON)
         elements_used = {}
         if len(parts) > 1:
+
             try:
                 json_part = next((part for part in parts if '{' in part and '}' in part), None)
                 if json_part:
@@ -414,7 +414,7 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
         
         # Récupérer uniquement les sources juridiques
         sources = ''
-        sources_part = next((part for part in parts if "Sources juridiques :" in part 
+        sources_part = next((part for part in parts if "Sources d'information :" in part 
                            or any(keyword in part.lower() for keyword in ["code", "article", "loi", "jurisprudence"])), None)
         if sources_part:
             sources = sources_part.replace("Sources juridiques :", "").strip()
