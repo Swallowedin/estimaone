@@ -371,7 +371,7 @@ Rédigez comme si vous parliez à quelqu'un qui n'a aucune connaissance juridiqu
 
 Structurez votre réponse en trois parties séparées par des lignes vides :
 
-1. Analyse en langage simple :
+1. Analyse de la situation :
 Expliquez la situation de manière accessible, sans jargon juridique.
 
 2. Éléments spécifiques (format JSON strict) :
