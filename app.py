@@ -361,7 +361,7 @@ Prestation recommandée : {prestation}
 
 Structurez votre réponse en trois parties séparées par des lignes vides :
 
-[Votre analyse détaillée de la situation, des enjeux et des implications en langage accessible]
+Votre analyse détaillée de la situation, des enjeux et des implications en langage accessible
 
 Éléments spécifiques (format JSON strict) :
 {{"domaine": {{"nom": "nom_du_domaine", "description": "explication simple du domaine juridique"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "pourquoi cette solution est adaptée"}}}}
@@ -434,8 +434,8 @@ def display_analysis_progress():
         1: {"desc": "Examen de la situation...", "time": 3.0},
         2: {"desc": "Étude du contexte...", "time": 3.0},
         3: {"desc": "Analyse des sources juridiques...", "time": 1.5},
-        4: {"desc": "Détermination de la procédure adaptée...", "time": 1.0},
-        5: {"desc": "Évaluation des coûts...", "time": 1.2},
+        4: {"desc": "Détermination de la procédure adaptée...", "time": 2.2},
+        5: {"desc": "Évaluation des coûts...", "time": 1.5},
         6: {"desc": "Finalisation de l'analyse...", "time": 3.2}
     }
     
