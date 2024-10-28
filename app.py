@@ -24,11 +24,9 @@ def display_analysis_summary(question: str, detailed_analysis: str):
     Affiche un résumé de l'analyse en termes accessibles aux non-juristes
     """
     st.info(f"""
-    📋 Notre compréhension de votre situation :
     
     {detailed_analysis}
     
-    Sur la base de cette analyse, nous allons maintenant vous proposer une estimation adaptée à votre situation.
     """)
 
 def check_global_limit() -> Tuple[bool, int]:
@@ -371,7 +369,6 @@ Rédigez comme si vous parliez à quelqu'un qui n'a aucune connaissance juridiqu
 
 Structurez votre réponse en trois parties séparées par des lignes vides :
 
-1. Analyse de la situation :
 Expliquez la situation de manière accessible, sans jargon juridique.
 
 2. Éléments spécifiques (format JSON strict) :
