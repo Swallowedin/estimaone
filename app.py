@@ -359,15 +359,17 @@ Degré d'urgence : {urgency}
 Domaine concerné : {domaine}
 Prestation recommandée : {prestation}
 
-Structurez votre réponse en trois parties, en évitant tout jargon juridique et en expliquant chaque terme technique si nécessaire :
+Structurez votre réponse en trois parties séparées par des lignes vides :
 
-[Votre analyse en langage accessible]
+[Votre analyse détaillée de la situation, des enjeux et des implications en langage accessible]
 
-Éléments techniques :
+Éléments spécifiques (format JSON strict) :
 {{"domaine": {{"nom": "nom_du_domaine", "description": "explication simple du domaine juridique"}}, "prestation": {{"nom": "nom_de_la_prestation", "description": "pourquoi cette solution est adaptée"}}}}
 
-Références légales :
-[Les principales sources juridiques pertinentes]"""
+Sources juridiques :
+[Listez uniquement les articles de loi, la jurisprudence et les textes juridiques pertinents]
+
+Assurez-vous que le langage reste accessible tout en étant précis."""
 
     try:
         response = client.chat.completions.create(
@@ -384,11 +386,12 @@ Références légales :
 
         parts = content.split('\n\n')
         
-        # Extraction de l'analyse
+        # Récupérer l'analyse complète (première partie)
         analysis = parts[0] if len(parts) > 0 else "Analyse non disponible."
-        analysis = analysis.strip()
+        if analysis.startswith("Analyse :"):
+            analysis = analysis[8:].strip()  # Retire juste le mot "Analyse :" s'il est présent
         
-        # Extraction des éléments techniques (JSON)
+        # Traitement des éléments spécifiques (JSON)
         elements_used = {}
         if len(parts) > 1:
             try:
@@ -409,13 +412,12 @@ Références légales :
                     "prestation": {"nom": prestation, "description": "Erreur dans l'analyse"}
                 }
         
-        # Extraction des sources juridiques
+        # Récupérer uniquement les sources juridiques
         sources = ''
-        if len(parts) > 2:
-            sources = parts[2].strip()
-            # Nettoyage du titre "Références légales :" s'il est présent
-            if sources.startswith("Références légales :"):
-                sources = sources.replace("Références légales :", "").strip()
+        sources_part = next((part for part in parts if "Sources juridiques :" in part 
+                           or any(keyword in part.lower() for keyword in ["code", "article", "loi", "jurisprudence"])), None)
+        if sources_part:
+            sources = sources_part.replace("Sources juridiques :", "").strip()
         else:
             sources = "Aucune source spécifique mentionnée."
 
