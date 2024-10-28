@@ -435,11 +435,6 @@ Assurez-vous que le langage reste accessible tout en étant précis."""
         }, "Non disponible en raison d'une erreur."
 
 def display_analysis_progress():
-    """
-    Affiche une barre de progression avec les étapes de l'analyse
-    """
-    progress_placeholder = st.empty()
-    
     steps = {
         1: "Analyse de votre demande...",
         2: "Identification du domaine juridique...",
@@ -447,14 +442,16 @@ def display_analysis_progress():
         4: "Génération du rapport d'analyse..."
     }
     
+    progress_text = st.empty()
+    progress_bar = st.empty()
+    
     for step_num, step_desc in steps.items():
         progress = step_num / len(steps)
-        with progress_placeholder.container():
-            st.progress(progress)
-            st.write(f"⏳ {step_desc}")
-        time.sleep(0.8)  # Délai entre chaque étape
+        progress_bar.progress(progress)
+        progress_text.write(f"⏳ {step_desc}")
+        time.sleep(0.8)
     
-    progress_placeholder.empty()
+    return progress_text, progress_bar
 
 def send_contact_email(name: str, email: str, phone: str, message: str) -> bool:
     """
@@ -735,144 +732,145 @@ def main():
             return
 
         if question and question != exemple_cas:
-            progress_container = st.empty()
+            # Initialiser les placeholders pour la progression
+            progress_text, progress_bar = display_analysis_progress()
+                
+            # Préparation des informations client pour l'analyse
+            client_type_desc = f"{client_info['type_principal']}"
+            if client_info['type_principal'] == "Professionnel":
+                client_type_desc += f" - {client_info['sous_type']}"
+                if 'taille' in client_info:
+                    client_type_desc += f" ({client_info['taille']})"
+                if 'secteur' in client_info:
+                    client_type_desc += f" - Secteur {client_info['secteur']}"
             
-            with progress_container:
-                # Afficher la progression à la place du spinner
-                display_analysis_progress()
+            # Analyse avec timeout
+            result, timeout = execute_with_timeout(
+                analyze_question,
+                question,
+                client_type_desc,
+                urgency,
+                timeout_seconds=30
+            )
+            
+            if timeout:
+                progress_text.empty()
+                progress_bar.empty()
+                st.error("Désolé, l'analyse a pris trop de temps. Veuillez réessayer ou nous contacter directement.")
+                return
                 
-                # Préparation des informations client pour l'analyse
-                client_type_desc = f"{client_info['type_principal']}"
-                if client_info['type_principal'] == "Professionnel":
-                    client_type_desc += f" - {client_info['sous_type']}"
-                    if 'taille' in client_info:
-                        client_type_desc += f" ({client_info['taille']})"
-                    if 'secteur' in client_info:
-                        client_type_desc += f" - Secteur {client_info['secteur']}"
+            domaine, prestation, confidence, is_relevant = result
+            
+            if not domaine or not prestation:
+                progress_text.empty()
+                progress_bar.empty()
+                st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
+                return
+
+            detailed_analysis, elements_used, sources = get_detailed_analysis(
+                question, client_type_desc, urgency, domaine, prestation
+            )
+
+            # Calcul de l'estimation
+            forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(
+                domaine, prestation, urgency
+            )
+
+            # Logging
+            if forfait is not None:
+                estimation = {
+                    'forfait': forfait,
+                    'domaine': domaine_label,
+                    'prestation': prestation_label
+                }
+                log_question(question, client_type_desc, urgency, estimation)
+            else:
+                log_question(question, client_type_desc, urgency)
+
+            if forfait is None:
+                progress_text.empty()
+                progress_bar.empty()
+                st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
+                for detail in calcul_details:
+                    st.write(detail)
+                st.info("Pour obtenir une estimation précise, veuillez nous contacter directement.")
+                return
+
+            # Container principal pour les résultats
+            with st.container():
+                # Maintenant on vide les éléments de progression
+                progress_text.empty()
+                progress_bar.empty()
                 
-                # Analyse avec timeout
-                result, timeout = execute_with_timeout(
-                    analyze_question,
-                    question,
-                    client_type_desc,
-                    urgency,
-                    timeout_seconds=30
-                )
+                # 1. Résumé de l'analyse
+                st.info(f"""
+                📋 Notre compréhension de votre situation :
                 
-                if timeout:
-                    progress_container.empty()
-                    st.error("Désolé, l'analyse a pris trop de temps. Veuillez réessayer ou nous contacter directement.")
-                    return
-                    
-                domaine, prestation, confidence, is_relevant = result
+                {detailed_analysis}
                 
-                if not domaine or not prestation:
-                    progress_container.empty()
-                    st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
-                    return
+                Sur la base de cette analyse, nous allons maintenant vous proposer une estimation adaptée à votre situation.
+                """)
 
-                detailed_analysis, elements_used, sources = get_detailed_analysis(
-                    question, client_type_desc, urgency, domaine, prestation
-                )
+                # 2. Estimation
+                st.markdown(f"""
+                <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
+                    <h2 style="color: #1f618d;">Forfait estimé</h2>
+                    <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
+                        À partir de <span style="color: #e74c3c;">{forfait} €HT</span>
+                    </p>
+                    <p style="font-style: italic;">Domaine : {domaine_label}</p>
+                    <p style="font-style: italic;">Prestation : {prestation_label}</p>
+                </div>
+                """, unsafe_allow_html=True)
 
-                # Calcul de l'estimation
-                forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(
-                    domaine, prestation, urgency
-                )
+                st.info("""
+                📌 Note importante : Cette estimation est fournie à titre indicatif et peut varier en fonction de la complexité spécifique de votre situation. 
+                Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Pour les particuliers, il est possible de payer en plusieurs fois.
+                """)
 
-                # Logging
-                if forfait is not None:
-                    estimation = {
-                        'forfait': forfait,
-                        'domaine': domaine_label,
-                        'prestation': prestation_label
-                    }
-                    log_question(question, client_type_desc, urgency, estimation)
-                else:
-                    log_question(question, client_type_desc, urgency)
+                st.markdown("---")
 
-                if forfait is None:
-                    progress_container.empty()
-                    st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
+                # 3. Indicateurs de confiance et avertissements
+                col1, col2 = st.columns([1, 2])
+                with col1:
+                    st.subheader("Indice de confiance")
+                    st.progress(confidence)
+                    st.write(f"Confiance : {confidence:.2%}")
+                with col2:
+                    if confidence < 0.5:
+                        st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
+                    elif not is_relevant:
+                        st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
+
+                # 4. Recommandations
+                st.markdown("### 💡 Recommandations")
+                st.success("""
+                **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
+                nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
+                - Évaluer précisément la complexité de votre cas
+                - Vous fournir des conseils juridiques adaptés
+                - Élaborer une stratégie sur mesure pour votre situation
+                """)
+
+                st.markdown("---")
+
+                # 5. Détails dans des colonnes
+                details_col1, details_col2 = st.columns(2)
+                
+                with details_col1:
+                    st.subheader("Détails du forfait")
                     for detail in calcul_details:
                         st.write(detail)
-                    st.info("Pour obtenir une estimation précise, veuillez nous contacter directement.")
-                    return
 
-                # Container principal pour les résultats
-                with st.container():
-                    # Maintenant on vide le container de progression seulement après avoir tout préparé
-                    progress_container.empty()
-                    
-                    # 1. Résumé de l'analyse
-                    st.info(f"""
-                    📋 Notre compréhension de votre situation :
-                    
-                    {detailed_analysis}
-                    
-                    Sur la base de cette analyse, nous allons maintenant vous proposer une estimation adaptée à votre situation.
-                    """)
+                with details_col2:
+                    if isinstance(elements_used, dict) and "prestation" in elements_used:
+                        st.subheader("Procédure suggérée")
+                        st.write(elements_used['prestation'].get('description', 'Non spécifié'))
 
-                    # 2. Estimation
-                    st.markdown(f"""
-                    <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px; text-align: center;">
-                        <h2 style="color: #1f618d;">Forfait estimé</h2>
-                        <p style="font-size: 24px; font-weight: bold; color: #2c3e50;">
-                            À partir de <span style="color: #e74c3c;">{forfait} €HT</span>
-                        </p>
-                        <p style="font-style: italic;">Domaine : {domaine_label}</p>
-                        <p style="font-style: italic;">Prestation : {prestation_label}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    st.info("""
-                    📌 Note importante : Cette estimation est fournie à titre indicatif et peut varier en fonction de la complexité spécifique de votre situation. 
-                    Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Pour les particuliers, il est possible de payer en plusieurs fois.
-                    """)
-
-                    st.markdown("---")
-
-                    # 3. Indicateurs de confiance et avertissements
-                    col1, col2 = st.columns([1, 2])
-                    with col1:
-                        st.subheader("Indice de confiance")
-                        st.progress(confidence)
-                        st.write(f"Confiance : {confidence:.2%}")
-                    with col2:
-                        if confidence < 0.5:
-                            st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
-                        elif not is_relevant:
-                            st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
-
-                    # 4. Recommandations
-                    st.markdown("### 💡 Recommandations")
-                    st.success("""
-                    **Consultation initiale recommandée** - Pour une analyse approfondie de votre situation et des conseils personnalisés, 
-                    nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
-                    - Évaluer précisément la complexité de votre cas
-                    - Vous fournir des conseils juridiques adaptés
-                    - Élaborer une stratégie sur mesure pour votre situation
-                    """)
-
-                    st.markdown("---")
-
-                    # 5. Détails dans des colonnes
-                    details_col1, details_col2 = st.columns(2)
-                    
-                    with details_col1:
-                        st.subheader("Détails du forfait")
-                        for detail in calcul_details:
-                            st.write(detail)
-
-                    with details_col2:
-                        if isinstance(elements_used, dict) and "prestation" in elements_used:
-                            st.subheader("Procédure suggérée")
-                            st.write(elements_used['prestation'].get('description', 'Non spécifié'))
-
-                    # 6. Informations supplémentaires
-                    if sources and sources != "Aucune source spécifique mentionnée.":
-                        with st.expander("Sources juridiques"):
-                            st.write(sources)
+                # 6. Informations supplémentaires
+                if sources and sources != "Aucune source spécifique mentionnée.":
+                    with st.expander("Sources juridiques"):
+                        st.write(sources)
 
         else:
             st.warning("Veuillez décrire votre cas avant de demander une estimation. N'utilisez pas l'exemple fourni tel quel.")
