@@ -704,7 +704,7 @@ def main():
 
     question = st.text_area(
         "Expliquez brièvement votre cas, notre intelligence artificielle s'occupe du reste !",
-        height=150,
+        height=80,
         placeholder=exemple_cas
     )
 
