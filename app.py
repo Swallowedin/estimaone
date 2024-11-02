@@ -222,21 +222,38 @@ def apply_custom_css():
             .css-1kyxreq,
             .css-1r6slb0,
             .css-5rimss,
-            .stDeployButton {
+            .stDeployButton,
+            .streamlit-expanderHeader,
+            ._link_51w34_10,
+            [class*="_link_"],
+            [class*="viewerBadge"],
+            svg[viewBox="0 0 303 165"],
+            div:has(> svg[viewBox="0 0 303 165"]),
+            div:has(> a[href*="streamlit.io"]),
+            .stDeployButton,
+            div:has(> .stDeployButton) {
                 display: none !important;
                 visibility: hidden !important;
                 height: 0px !important;
-                min-height: 0px !important;
-                margin: 0px !important;
+                width: 0px !important;
                 padding: 0px !important;
+                margin: 0px !important;
                 position: fixed !important;
                 opacity: 0 !important;
+                pointer-events: none !important;
                 top: -100000px !important;
+                z-index: -9999 !important;
             }
 
             /* Suppression du widget hosted by streamlit */
-            .element-container:has(.stDeployButton) {
+            .element-container:has(.stDeployButton),
+            *:has(> [class*="viewerBadge"]),
+            *:has(> svg[viewBox="0 0 303 165"]) {
                 display: none !important;
+                height: 0px !important;
+                min-height: 0px !important;
+                padding: 0px !important;
+                margin: 0px !important;
             }
 
             /* Cacher la dernière div qui contient souvent le footer */
@@ -262,6 +279,36 @@ def apply_custom_css():
             * {
                 -ms-overflow-style: none !important;
                 scrollbar-width: none !important;
+            }
+
+            /* Reset conteneur principal */
+            .stApp {
+                padding: 0 1rem !important;
+                background: none !important;
+                overflow: visible !important;
+            }
+
+            /* S'assurer que le contenu a la bonne largeur */
+            .main .block-container {
+                max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* Assurer que le contenu est bien aligné */
+            .element-container {
+                padding: 0 !important;
+                width: 100% !important;
+            }
+
+            /* Réinitialiser la mise en page globale */
+            .stApp > header {
+                background-color: transparent !important;
+            }
+
+            .stApp {
+                margin-top: -80px !important;
             }
         </style>
     """, unsafe_allow_html=True)
