@@ -208,7 +208,7 @@ def send_log_email(subject, body, to_email):
 def apply_custom_css():
     st.markdown("""
         <style>
-            /* Forcer l'iframe à se comporter comme un div normal */
+            /* Conteneur principal */
             [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
                 position: relative !important;
                 top: auto !important;
@@ -216,19 +216,21 @@ def apply_custom_css():
                 right: auto !important;
                 height: auto !important;
                 width: 100% !important;
-                overflow: hidden !important;
                 transform: none !important;
                 background: transparent !important;
             }
             
             .main {
-                overflow: hidden !important;
+                height: auto !important;
+                min-height: auto !important;
+                overflow: visible !important;
             }
             
             .block-container {
                 max-width: 100% !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                height: auto !important;
             }
 
             /* Cacher les éléments Streamlit */
@@ -236,27 +238,31 @@ def apply_custom_css():
                 display: none !important;
             }
 
-            /* Supprimer tout scroll indépendant */
+            /* Assurer que l'iframe s'adapte au contenu */
             iframe {
-                overflow: hidden !important;
+                height: auto !important;
+                min-height: 100% !important;
             }
 
             /* Réinitialiser les conteneurs */
             .stApp {
-                min-height: 0vh !important;
-                overflow: hidden !important;
+                height: auto !important;
+                min-height: auto !important;
                 position: relative !important;
                 background: transparent !important;
             }
 
-            /* Supprimer toutes les barres de défilement */
-            ::-webkit-scrollbar {
-                display: none !important;
+            /* S'assurer que tout le contenu est visible */
+            .element-container {
+                height: auto !important;
+                overflow: visible !important;
             }
-
-            * {
-                -ms-overflow-style: none !important;
-                scrollbar-width: none !important;
+            
+            /* Garder les formulaires et autres éléments interactifs visibles */
+            .stForm, .stTextArea, .stButton {
+                height: auto !important;
+                overflow: visible !important;
+                margin-bottom: 1rem !important;
             }
         </style>
     """, unsafe_allow_html=True)
