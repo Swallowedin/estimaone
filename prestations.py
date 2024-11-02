@@ -939,8 +939,17 @@ def get_prestations():
                     "definition": "Conseil sur la conformité aux réglementations de contrôle des exportations."
                 }
             }
+        },
+        "Autres prestations pour les professionnels": {
+            "label": "Autres prestations",
+            "prestations": {
+                "Externalisation_fonctions_juridiques": {
+                    "label": "Externalisation du service juridique",
+                    "tarif": 2000,
+                    "definition": "Accompagnement de l'entreprise dans toutes ses problématiques en lieu et place d'un service juridique interne."
+                }
+            }
         }
-            
         # ... [Les autres domaines suivent le même modèle]
     }
 
