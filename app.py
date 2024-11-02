@@ -712,7 +712,6 @@ def main():
     
     st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
 
-    # Collecte des informations client avec les champs dynamiques
     client_info = get_dynamic_client_type_fields()
     urgency = st.selectbox("Degré d'urgence :", ("Normal", "Urgent"))
 
@@ -725,7 +724,6 @@ def main():
     )
 
     if st.button("Obtenir une estimation grâce à l'intelligence artificielle"):
-        # Vérification des limites
         peut_continuer_global, requetes_restantes = check_global_limit()
         if not peut_continuer_global:
             st.error(f"""
@@ -733,148 +731,128 @@ def main():
             Le système sera à nouveau disponible dans {requetes_restantes} minutes.
             Pour une analyse urgente, vous pouvez nous contacter directement.
             """)
-            return
-
-        peut_continuer, temps_attente = rate_limiter.check_limit(get_session_id())
-        if not peut_continuer:
-            st.warning(f"""
-            ⏳ Merci de patienter {temps_attente} minute{'s' if temps_attente > 1 else ''} avant de faire une nouvelle demande.
-            Pour une analyse urgente, vous pouvez nous contacter directement.
-            """)
-            return
-
-        if question and question != exemple_cas:
-            # Initialiser les placeholders pour la progression
-            progress_text, progress_bar = display_analysis_progress()
-                
-            # Préparation des informations client pour l'analyse
-            client_type_desc = f"{client_info['type_principal']}"
-            if client_info['type_principal'] == "Professionnel":
-                client_type_desc += f" - {client_info['sous_type']}"
-                if 'taille' in client_info:
-                    client_type_desc += f" ({client_info['taille']})"
-                if 'secteur' in client_info:
-                    client_type_desc += f" - Secteur {client_info['secteur']}"
-            
-            # Analyse avec timeout
-            result, timeout = execute_with_timeout(
-                analyze_question,
-                question,
-                client_type_desc,
-                urgency,
-                timeout_seconds=30
-            )
-            
-            if timeout:
-                progress_text.empty()
-                progress_bar.empty()
-                st.error("Désolé, l'analyse a pris trop de temps. Veuillez réessayer ou nous contacter directement.")
-                return
-                
-            domaine, prestation, confidence, is_relevant = result
-            
-            if not domaine or not prestation:
-                progress_text.empty()
-                progress_bar.empty()
-                st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
-                return
-
-            detailed_analysis, elements_used, sources = get_detailed_analysis(
-                question, client_type_desc, urgency, domaine, prestation
-            )
-
-            # Calcul de l'estimation
-            forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(
-                domaine, prestation, urgency
-            )
-
-            # Logging
-            if forfait is not None:
-                estimation = {
-                    'forfait': forfait,
-                    'domaine': domaine_label,
-                    'prestation': prestation_label
-                }
-                log_question(question, client_type_desc, urgency, estimation)
-            else:
-                log_question(question, client_type_desc, urgency)
-
-            if forfait is None:
-                progress_text.empty()
-                progress_bar.empty()
-                st.error("Désolé, nous n'avons pas pu analyser votre demande. Réessayez en formulant votre question autrement ou nous contactez-nous directement pour obtenir une estimation précise.")
-                return
-
-            # Container principal pour les résultats
-            with st.container():
-                # Maintenant on vide les éléments de progression
-                progress_text.empty()
-                progress_bar.empty()
-                
-                # 1. Résumé de l'analyse
-                st.info(f"""
-                📋 Analyse de votre situation :
-                
-                {detailed_analysis}
-               
-                """)
-
-                # 2. Estimation
-                st.markdown(f"""
-                <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <h3 style="color: #1f618d; margin: 0;">Estimation de la prestation</h3>
-                    <p style="font-size: 22px; font-weight: bold; color: #417068; margin: 10px 0;">
-                        <span style="color: #3c7be7;">{forfait} €HT</span>
-                    </p>
-                    <small style="color: #666;">Pour {domaine_label.lower()} • {prestation_label}</small>
-                </div>
-                """, unsafe_allow_html=True)
-                
-
-
-                st.markdown("""
-                <div style="background-color: #fafafa; padding: 10px; border-left: 4px solid #3c7be7; border-radius: 4px;">
-                    <p style="margin: 0; color: #555;">
-                        📌 <strong>Note importante :</strong> Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation. 
-                    </p>
-                    <p style="margin: 5px 0 0 0; color: #666;">
-                        Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Si vous êtes un particulier, il est possible de payer en plusieurs fois.
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                st.markdown("---")
-
-                # 3. Indicateurs de confiance et avertissements
-                col1, col2 = st.columns([1, 2])
-                with col1:
-                    st.subheader("Indice de confiance")
-                    st.progress(confidence)
-                    st.write(f"Confiance : {confidence:.2%}")
-                with col2:
-                    if confidence < 0.5:
-                        st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
-                    elif not is_relevant:
-                        st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
-
-                # 4. Recommandations
-                st.markdown("### 💡 Recommandations")
-                st.success("""
-                **Consultation initiale recommandée** - Si vous souhaitez uniquement bénéficier d'une consultation pour connaître vos droits, 
-                nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
-                - Évaluer précisément la complexité de votre situation
-                - Vous fournir des conseils juridiques adaptés
-                - Élaborer une stratégie sur mesure pour votre situation
-                """)
-
-                st.markdown("---")
-
-                # 6. Informations supplémentaires
-                if sources and sources != "Aucune source spécifique mentionnée.":
-                    with st.expander("Sources juridiques"):
-                        st.write(sources)
-
         else:
-            st.warning("Veuillez décrire votre cas avant de demander une estimation. N'utilisez pas l'exemple fourni tel quel.")
+            peut_continuer, temps_attente = rate_limiter.check_limit(get_session_id())
+            if not peut_continuer:
+                st.warning(f"""
+                ⏳ Merci de patienter {temps_attente} minute{'s' if temps_attente > 1 else ''} avant de faire une nouvelle demande.
+                Pour une analyse urgente, vous pouvez nous contacter directement.
+                """)
+            elif question and question != exemple_cas:
+                progress_text, progress_bar = display_analysis_progress()
+                    
+                client_type_desc = f"{client_info['type_principal']}"
+                if client_info['type_principal'] == "Professionnel":
+                    client_type_desc += f" - {client_info['sous_type']}"
+                    if 'taille' in client_info:
+                        client_type_desc += f" ({client_info['taille']})"
+                    if 'secteur' in client_info:
+                        client_type_desc += f" - Secteur {client_info['secteur']}"
+                
+                result, timeout = execute_with_timeout(
+                    analyze_question,
+                    question,
+                    client_type_desc,
+                    urgency,
+                    timeout_seconds=30
+                )
+                
+                if timeout:
+                    progress_text.empty()
+                    progress_bar.empty()
+                    st.error("Désolé, l'analyse a pris trop de temps. Veuillez réessayer ou nous contacter directement.")
+                else:
+                    domaine, prestation, confidence, is_relevant = result
+                    
+                    if not domaine or not prestation:
+                        progress_text.empty()
+                        progress_bar.empty()
+                        st.error("Désolé, nous n'avons pas pu analyser votre demande. Veuillez réessayer avec plus de détails.")
+                    else:
+                        detailed_analysis, elements_used, sources = get_detailed_analysis(
+                            question, client_type_desc, urgency, domaine, prestation
+                        )
+
+                        forfait, _, calcul_details, tarifs_utilises, domaine_label, prestation_label = calculate_estimate(
+                            domaine, prestation, urgency
+                        )
+
+                        if forfait is not None:
+                            estimation = {
+                                'forfait': forfait,
+                                'domaine': domaine_label,
+                                'prestation': prestation_label
+                            }
+                            log_question(question, client_type_desc, urgency, estimation)
+                        else:
+                            log_question(question, client_type_desc, urgency)
+
+                        if forfait is None:
+                            progress_text.empty()
+                            progress_bar.empty()
+                            st.error("Désolé, nous n'avons pas pu analyser votre demande. Réessayez en formulant votre question autrement ou contactez-nous directement pour obtenir une estimation précise.")
+                        else:
+                            with st.container():
+                                progress_text.empty()
+                                progress_bar.empty()
+                                
+                                st.info(f"""
+                                📋 Analyse de votre situation :
+                                
+                                {detailed_analysis}
+                               
+                                """)
+
+                                st.markdown(f"""
+                                <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <h3 style="color: #1f618d; margin: 0;">Estimation de la prestation</h3>
+                                    <p style="font-size: 22px; font-weight: bold; color: #417068; margin: 10px 0;">
+                                        <span style="color: #3c7be7;">{forfait} €HT</span>
+                                    </p>
+                                    <small style="color: #666;">Pour {domaine_label.lower()} • {prestation_label}</small>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                st.markdown("""
+                                <div style="background-color: #fafafa; padding: 10px; border-left: 4px solid #3c7be7; border-radius: 4px;">
+                                    <p style="margin: 0; color: #555;">
+                                        📌 <strong>Note importante :</strong> Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation. 
+                                    </p>
+                                    <p style="margin: 5px 0 0 0; color: #666;">
+                                        Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Si vous êtes un particulier, il est possible de payer en plusieurs fois.
+                                    </p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                st.markdown("---")
+
+                                col1, col2 = st.columns([1, 2])
+                                with col1:
+                                    st.subheader("Indice de confiance")
+                                    st.progress(confidence)
+                                    st.write(f"Confiance : {confidence:.2%}")
+                                with col2:
+                                    if confidence < 0.5:
+                                        st.warning("⚠️ Attention : Notre IA a eu des difficultés à analyser votre question avec certitude. L'estimation ci-dessus peut manquer de précision.")
+                                    elif not is_relevant:
+                                        st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
+
+                                st.markdown("### 💡 Recommandations")
+                                st.success("""
+                                **Consultation initiale recommandée** - Si vous souhaitez uniquement bénéficier d'une consultation pour connaître vos droits, 
+                                nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
+                                - Évaluer précisément la complexité de votre situation
+                                - Vous fournir des conseils juridiques adaptés
+                                - Élaborer une stratégie sur mesure pour votre situation
+                                """)
+
+                                st.markdown("---")
+
+                                if sources and sources != "Aucune source spécifique mentionnée.":
+                                    with st.expander("Sources juridiques"):
+                                        st.write(sources)
+
+            else:
+                st.warning("Veuillez décrire votre cas avant de demander une estimation. N'utilisez pas l'exemple fourni tel quel.")
     
     st.markdown("---")
     display_contact_form()
