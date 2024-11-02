@@ -208,61 +208,14 @@ def send_log_email(subject, body, to_email):
 def apply_custom_css():
     st.markdown("""
         <style>
-            /* Conteneur principal */
-            [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
-                position: relative !important;
-                top: auto !important;
-                left: auto !important;
-                right: auto !important;
-                height: auto !important;
-                width: 100% !important;
-                transform: none !important;
+            /* Code CSS précédent... */
+
+            /* Ajout pour l'intégration iframe */
+            html, body, .stApp {
                 background: transparent !important;
-            }
-            
-            .main {
                 height: auto !important;
                 min-height: auto !important;
-                overflow: visible !important;
-            }
-            
-            .block-container {
-                max-width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                height: auto !important;
-            }
-
-            /* Cacher les éléments Streamlit */
-            #MainMenu, footer, header {
-                display: none !important;
-            }
-
-            /* Assurer que l'iframe s'adapte au contenu */
-            iframe {
-                height: auto !important;
-                min-height: 100% !important;
-            }
-
-            /* Réinitialiser les conteneurs */
-            .stApp {
-                height: auto !important;
-                min-height: auto !important;
-                position: relative !important;
-                background: transparent !important;
-            }
-
-            /* S'assurer que tout le contenu est visible */
-            .element-container {
-                height: auto !important;
-                overflow: visible !important;
-            }
-            
-            /* Garder les formulaires et autres éléments interactifs visibles */
-            .stForm, .stTextArea, .stButton {
-                height: auto !important;
-                overflow: visible !important;
-                margin-bottom: 1rem !important;
+                overflow: auto !important;
             }
         </style>
     """, unsafe_allow_html=True)
