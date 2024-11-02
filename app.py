@@ -231,7 +231,16 @@ def apply_custom_css():
             div:has(> svg[viewBox="0 0 303 165"]),
             div:has(> a[href*="streamlit.io"]),
             .stDeployButton,
-            div:has(> .stDeployButton) {
+            div:has(> .stDeployButton),
+            a[href*="streamlit.io"],
+            ._container_51w34_1,
+            .*viewerBadge*nim44_23,
+            footer div[class*="css"],
+            .element-container:last-child footer,
+            .element-container:has(footer),
+            div:has(> a[href*="streamlit.io"]),
+            div:has(> ._container_51w34_1),
+            div:has(> [class*="viewerBadge"]) {
                 display: none !important;
                 visibility: hidden !important;
                 height: 0px !important;
@@ -243,6 +252,7 @@ def apply_custom_css():
                 pointer-events: none !important;
                 top: -100000px !important;
                 z-index: -9999 !important;
+                left: -9999px !important;
             }
 
             /* Suppression du widget hosted by streamlit */
