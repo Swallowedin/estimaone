@@ -208,18 +208,68 @@ def send_log_email(subject, body, to_email):
 def apply_custom_css():
     st.markdown("""
         <style>
-            /* Code CSS précédent... */
-
-            /* Ajout pour l'intégration iframe */
-            html, body, .stApp {
+            /* Reset complet de Streamlit */
+            .stApp, [data-testid="stAppViewContainer"] {
+                all: unset !important;
+                display: block !important;
+                width: 100% !important;
+            }
+            
+            /* Suppression TOTALE du footer Streamlit */
+            footer, .reportview-container footer, footer[data-testid="stFooter"] {
+                display: none !important;
+                height: 0 !important;
+                visibility: hidden !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            /* Suppression de tous les éléments de navigation */
+            #MainMenu, header, [data-testid="stHeader"], .stDeployButton {
+                display: none !important;
+            }
+            
+            /* Suppression de toute barre de défilement */
+            ::-webkit-scrollbar {
+                display: none !important;
+                width: 0 !important;
+                height: 0 !important;
+            }
+            
+            /* Reset des conteneurs principaux */
+            .main, .block-container {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            
+            /* Forcer le fond transparent */
+            .stApp, body, iframe {
                 background: transparent !important;
-                height: auto !important;
-                min-height: auto !important;
-                overflow: auto !important;
+            }
+
+            /* Assurer que le contenu s'affiche correctement */
+            .element-container {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            /* Suppression du padding par défaut */
+            .css-1544g2n {
+                padding: 0 !important;
+            }
+
+            /* Suppression de tout scroll */
+            * {
+                -ms-overflow-style: none !important;
+                scrollbar-width: none !important;
+            }
+
+            .stApp > * {
+                overflow: visible !important;
             }
         </style>
     """, unsafe_allow_html=True)
-
 # Configuration du client OpenAI
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if not OPENAI_API_KEY:
