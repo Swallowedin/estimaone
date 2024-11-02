@@ -208,62 +208,73 @@ def send_log_email(subject, body, to_email):
 def apply_custom_css():
     st.markdown("""
         <style>
-            /* Masquer tous les éléments d'interface Streamlit */
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            header {visibility: hidden;}
-            
-            /* Supprimer les marges et le padding par défaut */
-            .main > div {
-                padding-top: 0;
-                padding-bottom: 0;
-                padding-left: 0;
-                padding-right: 0;
+            /* Reset complet de la structure Streamlit */
+            .stApp {
+                position: static !important;
+                overflow: visible !important;
+                height: auto !important;
+                background: none !important;
+                transform: none !important;
             }
             
-            /* Supprimer la barre de défilement indépendante */
+            /* Supprimer l'iframe comportement */
+            #root {
+                position: static !important;
+                height: auto !important;
+                overflow: visible !important;
+                transform: none !important;
+            }
+            
             .main {
-                overflow: visible;
-                height: auto;
-                min-height: 0;
+                position: static !important;
+                overflow: visible !important;
+                height: auto !important;
+                transform: none !important;
             }
             
-            /* Supprimer le padding autour du contenu principal */
             .block-container {
-                padding-top: 0;
-                padding-bottom: 0;
-                padding-left: 0;
-                padding-right: 0;
-                margin: 0;
+                position: static !important;
+                overflow: visible !important;
+                height: auto !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                transform: none !important;
             }
             
-            /* Assurer que le contenu s'étend sur toute la largeur */
-            .stApp {
-                margin: 0 auto;
-                width: 100%;
-                overflow: visible;
+            /* Supprimer tous les éléments Streamlit non nécessaires */
+            #MainMenu, footer, header {display: none !important;}
+            
+            /* Réinitialiser les propriétés qui causent le scroll indépendant */
+            [data-testid="stAppViewContainer"] {
+                position: static !important;
+                overflow: visible !important;
+                height: auto !important;
+                transform: none !important;
             }
             
-            /* Supprimer les marges autour des widgets */
+            section[data-testid="stSidebar"] {
+                display: none !important;
+            }
+            
+            iframe {
+                position: static !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            
+            /* Assurer que le contenu se comporte comme du contenu WordPress normal */
             .element-container {
-                margin: 0;
+                position: static !important;
+                overflow: visible !important;
+                height: auto !important;
             }
             
-            /* Supprimer la bordure autour des widgets */
-            .stTextInput > div > div {
-                border: none;
+            /* Style des widgets pour qu'ils s'intègrent mieux dans WordPress */
+            .stTextInput > div > div, .stTextArea > div > div {
+                background-color: white !important;
             }
             
-            .stApp > header {
-                background-color: transparent;
-            }
-            
-            /* Supprimer l'espace en haut de la page */
-            .stApp {
-                margin-top: -80px;
-            }
-            
-            /* Animation du spinner */
+            /* Animation maintenue pour le spinner */
             @keyframes spin {
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(360deg); }
@@ -272,12 +283,6 @@ def apply_custom_css():
                 animation: spin 1s linear infinite;
                 display: inline-block;
                 margin-right: 10px;
-            }
-            
-            /* Supprimer les marges des colonnes */
-            .row-widget {
-                margin: 0;
-                padding: 0;
             }
         </style>
     """, unsafe_allow_html=True)
