@@ -285,6 +285,55 @@ def apply_custom_css():
             .css-1kyxreq, .css-1r6slb0 {
                 display: none !important;
             }
+
+            /* Ciblage très agressif du widget Streamlit */
+            .viewerBadge_container__1QSob,
+            .viewerBadge_link__1S137,
+            .viewerBadge_text__1JaDK,
+            .viewerBadge_container__r5goodbye,
+            [data-testid="stFooter"],
+            .element-container iframe,
+            iframe[src*="streamlit.io"],
+            .streamlit-widget,
+            .stFooter,
+            footer,
+            footer.css-1lsmgbg,
+            .element-container:last-child iframe,
+            footer[data-testid="stFooter"],
+            footer > div,
+            footer > span,
+            footer a,
+            .stDeployButton,
+            .css-5rimss,
+            .css-1lsmgbg,
+            .css-qri22k,
+            .css-erpbzb {
+                display: none !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                width: 0 !important;
+                position: absolute !important;
+                pointer-events: none !important;
+                z-index: -9999 !important;
+                visibility: hidden !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+                border: none !important;
+            }
+            
+            /* Forcer la suppression du conteneur du widget */
+            div:has(> iframe[src*="streamlit.io"]) {
+                display: none !important;
+            }
+
+            /* S'assurer qu'aucun espace n'est réservé */
+            .element-container:last-of-type {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+                height: 0 !important;
+                min-height: 0 !important;
+            }
         </style>
     """, unsafe_allow_html=True)
     
