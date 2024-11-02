@@ -208,68 +208,47 @@ def send_log_email(subject, body, to_email):
 def apply_custom_css():
     st.markdown("""
         <style>
-            /* Reset complet de Streamlit */
-            .stApp, [data-testid="stAppViewContainer"] {
-                all: unset !important;
-                display: block !important;
-                width: 100% !important;
+            /* Réinitialisation totale */
+            .stApp {
+                margin: -90px -1rem -4rem -1rem !important;
+                padding: 0 !important;
+                background: none !important;
             }
             
-            /* Suppression TOTALE du footer Streamlit */
-            footer, .reportview-container footer, footer[data-testid="stFooter"] {
+            /* Masquer vraiment TOUS les éléments Streamlit */
+            footer, header, #MainMenu, .stDeployButton, [data-testid="stFooter"],
+            [data-testid="stHeader"], [data-testid="stToolbar"],
+            .css-eh5xgm, .css-1avcm0n, .css-14xtw13 {
                 display: none !important;
                 height: 0 !important;
-                visibility: hidden !important;
-                padding: 0 !important;
-                margin: 0 !important;
+                position: absolute !important;
+                top: -9999px !important;
+                left: -9999px !important;
             }
             
-            /* Suppression de tous les éléments de navigation */
-            #MainMenu, header, [data-testid="stHeader"], .stDeployButton {
-                display: none !important;
-            }
-            
-            /* Suppression de toute barre de défilement */
-            ::-webkit-scrollbar {
-                display: none !important;
-                width: 0 !important;
-                height: 0 !important;
-            }
-            
-            /* Reset des conteneurs principaux */
-            .main, .block-container {
-                padding: 0 !important;
-                margin: 0 !important;
-                width: 100% !important;
-            }
-            
-            /* Forcer le fond transparent */
-            .stApp, body, iframe {
-                background: transparent !important;
-            }
-
-            /* Assurer que le contenu s'affiche correctement */
-            .element-container {
+            /* Réinitialiser tous les conteneurs */
+            .main, .block-container, .element-container, section {
                 margin: 0 !important;
                 padding: 0 !important;
+                border: none !important;
+                background: none !important;
             }
             
-            /* Suppression du padding par défaut */
-            .css-1544g2n {
-                padding: 0 !important;
-            }
-
-            /* Suppression de tout scroll */
-            * {
-                -ms-overflow-style: none !important;
-                scrollbar-width: none !important;
-            }
-
+            /* Intégration fluide */
             .stApp > * {
-                overflow: visible !important;
+                font-family: inherit !important;
+                color: inherit !important;
+                background: inherit !important;
+            }
+            
+            /* Supprimer espaces inutiles */
+            .css-1544g2n, .css-1q1n0ol {
+                padding: 0 !important;
+                margin: 0 !important;
             }
         </style>
     """, unsafe_allow_html=True)
+    
 # Configuration du client OpenAI
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 if not OPENAI_API_KEY:
