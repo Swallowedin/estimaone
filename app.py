@@ -802,10 +802,7 @@ def main():
             if forfait is None:
                 progress_text.empty()
                 progress_bar.empty()
-                st.warning("Nous n'avons pas pu trouver un forfait précis pour cette prestation. Voici les détails :")
-                for detail in calcul_details:
-                    st.write(detail)
-                st.info("Pour obtenir une estimation précise, veuillez nous contacter directement.")
+                st.error("Désolé, nous n'avons pas pu analyser votre demande. Réessayez en formulant votre question autrement ou nous contactez-nous directement pour obtenir une estimation précise.")
                 return
 
             # Container principal pour les résultats
