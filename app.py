@@ -208,31 +208,82 @@ def send_log_email(subject, body, to_email):
 def apply_custom_css():
     st.markdown("""
         <style>
-            /* Reset conteneur principal sans marges négatives */
+            /* Reset complet de la structure Streamlit */
             .stApp {
-                padding: 0 1rem !important;  /* Ajout padding horizontal */
-                margin: -90px 0 -4rem 0 !important;  /* Garde marges verticales */
+                padding: 0 1rem !important;
                 background: none !important;
+                overflow: visible !important;
             }
             
-            /* S'assurer que le contenu a la bonne largeur */
-            .main .block-container {
-                max-width: 100% !important;
-                padding-left: 0 !important;
-                padding-right: 0 !important;
+            /* Suppression TOTALE du footer Streamlit */
+            footer[data-testid="stFooter"], footer {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                width: 0 !important;
+                position: fixed !important;
+                background: transparent !important;
                 margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                z-index: -9999 !important;
+                pointer-events: none !important;
             }
-            
-            /* Masquer éléments Streamlit */
-            footer, header, #MainMenu, .stDeployButton, [data-testid="stFooter"],
-            [data-testid="stHeader"], [data-testid="stToolbar"] {
+
+            /* Suppression des scrollbars */
+            ::-webkit-scrollbar {
+                display: none !important;
+                width: 0 !important;
+                height: 0 !important;
+            }
+
+            /* Masquer tous les éléments Streamlit non nécessaires */
+            #MainMenu, header, [data-testid="stHeader"],
+            [data-testid="stToolbar"], [data-testid="stDecoration"],
+            .viewerBadge {
                 display: none !important;
             }
-            
-            /* Assurer que le contenu est bien aligné */
+
+            /* Réinitialisation des conteneurs */
+            .main .block-container {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+            }
+
             .element-container {
                 padding: 0 !important;
-                width: 100% !important;
+                margin: 0 !important;
+                overflow: visible !important;
+            }
+
+            /* Suppression de tous les scrolls */
+            * {
+                -ms-overflow-style: none !important;
+                scrollbar-width: none !important;
+                overflow: visible !important;
+            }
+
+            /* Réinitialiser la mise en page globale */
+            .stApp > header {
+                background-color: transparent !important;
+            }
+
+            .stApp {
+                margin-top: -80px !important;
+            }
+
+            /* Dernier conteneur qui peut contenir le footer */
+            .element-container:last-child {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+                height: auto !important;
+            }
+
+            /* Classes spécifiques du footer Streamlit */
+            .css-1kyxreq, .css-1r6slb0 {
+                display: none !important;
             }
         </style>
     """, unsafe_allow_html=True)
