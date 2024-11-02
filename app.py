@@ -208,81 +208,55 @@ def send_log_email(subject, body, to_email):
 def apply_custom_css():
     st.markdown("""
         <style>
-            /* Reset complet de la structure Streamlit */
-            .stApp {
-                position: static !important;
-                overflow: visible !important;
+            /* Forcer l'iframe à se comporter comme un div normal */
+            [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                right: auto !important;
                 height: auto !important;
-                background: none !important;
+                width: 100% !important;
+                overflow: hidden !important;
                 transform: none !important;
-            }
-            
-            /* Supprimer l'iframe comportement */
-            #root {
-                position: static !important;
-                height: auto !important;
-                overflow: visible !important;
-                transform: none !important;
+                background: transparent !important;
             }
             
             .main {
-                position: static !important;
-                overflow: visible !important;
-                height: auto !important;
-                transform: none !important;
+                overflow: hidden !important;
             }
             
             .block-container {
-                position: static !important;
-                overflow: visible !important;
-                height: auto !important;
+                max-width: 100% !important;
                 padding: 0 !important;
                 margin: 0 !important;
-                transform: none !important;
             }
-            
-            /* Supprimer tous les éléments Streamlit non nécessaires */
-            #MainMenu, footer, header {display: none !important;}
-            
-            /* Réinitialiser les propriétés qui causent le scroll indépendant */
-            [data-testid="stAppViewContainer"] {
-                position: static !important;
-                overflow: visible !important;
-                height: auto !important;
-                transform: none !important;
-            }
-            
-            section[data-testid="stSidebar"] {
+
+            /* Cacher les éléments Streamlit */
+            #MainMenu, footer, header {
                 display: none !important;
             }
-            
+
+            /* Supprimer tout scroll indépendant */
             iframe {
-                position: static !important;
-                height: auto !important;
-                overflow: visible !important;
+                overflow: hidden !important;
             }
-            
-            /* Assurer que le contenu se comporte comme du contenu WordPress normal */
-            .element-container {
-                position: static !important;
-                overflow: visible !important;
-                height: auto !important;
+
+            /* Réinitialiser les conteneurs */
+            .stApp {
+                min-height: 0vh !important;
+                overflow: hidden !important;
+                position: relative !important;
+                background: transparent !important;
             }
-            
-            /* Style des widgets pour qu'ils s'intègrent mieux dans WordPress */
-            .stTextInput > div > div, .stTextArea > div > div {
-                background-color: white !important;
+
+            /* Supprimer toutes les barres de défilement */
+            ::-webkit-scrollbar {
+                display: none !important;
             }
-            
-            /* Animation maintenue pour le spinner */
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-            .loading-icon {
-                animation: spin 1s linear infinite;
-                display: inline-block;
-                margin-right: 10px;
+
+            * {
+                -ms-overflow-style: none !important;
+                scrollbar-width: none !important;
             }
         </style>
     """, unsafe_allow_html=True)
