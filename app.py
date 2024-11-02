@@ -686,16 +686,6 @@ def main():
     
     st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
 
-    # Initialisation du compteur de keep-alive dans la session state
-    if 'last_keep_alive' not in st.session_state:
-        st.session_state['last_keep_alive'] = time.time()
-
-    # Vérification et mise à jour du keep-alive
-    current_time = time.time()
-    if current_time - st.session_state['last_keep_alive'] > 3540:  # 59 minutes
-        st.session_state['last_keep_alive'] = current_time
-        st.rerun()
-
     # Collecte des informations client avec les champs dynamiques
     client_info = get_dynamic_client_type_fields()
     urgency = st.selectbox("Degré d'urgence :", ("Normal", "Urgent"))
