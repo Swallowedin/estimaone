@@ -206,122 +206,49 @@ def send_log_email(subject, body, to_email):
 
 # Fonction pour appliquer le CSS personnalisé
 def apply_custom_css():
-   st.markdown("""
-       <style>
-           /* Reset complet de tous les éléments Streamlit */
-           .viewerBadge_container__1QSob,
-           .viewerBadge_link__1S137,
-           .viewerBadge_text__1JaDK,
-           .streamlit-footer,
-           [data-testid="stFooter"],
-           [data-testid="stToolbar"],
-           footer,
-           footer.css-1lsmgbg,
-           footer.css-qri22k, 
-           footer.css-erpbzb,
-           .css-1kyxreq,
-           .css-1r6slb0,
-           .css-5rimss,
-           .stDeployButton,
-           .streamlit-expanderHeader,
-           ._link_51w34_10,
-           [class*="_link_"],
-           [class*="viewerBadge"],
-           a[href*="streamlit.io"],
-           ._container_51w34_1,
-           .*viewerBadge*nim44_23,
-           footer div[class*="css"],
-           .element-container:last-child footer,
-           .element-container:has(footer),
-           div:has(> a[href*="streamlit.io"]),
-           div:has(> ._container_51w34_1),
-           div:has(> [class*="viewerBadge"]),
-           svg[viewBox="0 0 303 165"],
-           div:has(> svg[viewBox="0 0 303 165"]),
-           svg[width="303"][height="165"],
-           div:has(path[d*="M151.478 102.737"]),
-           div:has(path[d*="M296.729 26.0464"]),
-           div:has(path[d*="M156.386 2.91088"]) {
-               display: none !important;
-               visibility: hidden !important;
-               height: 0 !important;
-               width: 0 !important;
-               position: absolute !important;
-               top: -9999px !important;
-               left: -9999px !important;
-               opacity: 0 !important;
-               z-index: -9999 !important;
-               pointer-events: none !important;
-               margin: 0 !important;
-               padding: 0 !important;
-           }
+    st.markdown("""
+        <style>
+            /* Suppression de la barre de défilement */
+            ::-webkit-scrollbar {
+                display: none !important;
+                width: 0 !important;
+                height: 0 !important;
+            }
 
-           /* Ciblage des conteneurs parents */
-           *:has(> svg[viewBox="0 0 303 165"]),
-           *:has(> div > svg[viewBox="0 0 303 165"]),
-           div:has(> .stDeployButton),
-           .element-container:has(.stDeployButton),
-           *:has(> [class*="viewerBadge"]) {
-               display: none !important;
-               height: 0 !important;
-               min-height: 0 !important;
-               width: 0 !important;
-               margin: 0 !important;
-               padding: 0 !important;
-           }
+            * {
+                -ms-overflow-style: none !important;
+                scrollbar-width: none !important;
+            }
 
-           /* Suppression de la barre de défilement */
-           ::-webkit-scrollbar {
-               display: none !important;
-               width: 0 !important;
-               height: 0 !important;
-           }
+            /* Reset conteneur principal */
+            .stApp {
+                padding: 0 1rem !important;
+                background: none !important;
+                overflow: visible !important;
+                margin-top: -80px !important;
+            }
 
-           * {
-               -ms-overflow-style: none !important;
-               scrollbar-width: none !important;
-           }
+            /* Layout conteneurs */
+            .main .block-container {
+                max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin: 0 !important;
+                padding-bottom: 0 !important;
+                margin-bottom: 0 !important;
+            }
 
-           /* Reset conteneur principal */
-           .stApp {
-               padding: 0 1rem !important;
-               background: none !important;
-               overflow: visible !important;
-               margin-top: -80px !important;
-           }
+            .element-container {
+                padding: 0 !important;
+                width: 100% !important;
+            }
 
-           /* Layout conteneurs */
-           .main .block-container {
-               max-width: 100% !important;
-               padding-left: 0 !important;
-               padding-right: 0 !important;
-               margin: 0 !important;
-               padding-bottom: 0 !important;
-               margin-bottom: 0 !important;
-           }
-
-           .element-container {
-               padding: 0 !important;
-               width: 100% !important;
-           }
-
-           /* Header transparent */
-           .stApp > header {
-               background-color: transparent !important;
-           }
-
-           /* Dernier conteneur qui peut avoir le footer */
-           .element-container:last-child:has(iframe),
-           .element-container:last-child:has(footer),
-           .element-container:last-child {
-               display: none !important;
-               height: 0 !important;
-               min-height: 0 !important;
-               padding: 0 !important;
-               margin: 0 !important;
-           }
-       </style>
-   """, unsafe_allow_html=True)
+            /* Header transparent */
+            .stApp > header {
+                background-color: transparent !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
     
 # Configuration du client OpenAI
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
