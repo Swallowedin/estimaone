@@ -208,131 +208,60 @@ def send_log_email(subject, body, to_email):
 def apply_custom_css():
     st.markdown("""
         <style>
-            /* Reset complet de la structure Streamlit */
-            .stApp {
-                padding: 0 1rem !important;
-                background: none !important;
-                overflow: visible !important;
-            }
-            
-            /* Suppression TOTALE du footer Streamlit */
-            footer[data-testid="stFooter"], footer {
-                display: none !important;
-                visibility: hidden !important;
-                height: 0 !important;
-                width: 0 !important;
-                position: fixed !important;
-                background: transparent !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                border: none !important;
-                z-index: -9999 !important;
-                pointer-events: none !important;
-            }
-
-            /* Suppression des scrollbars */
-            ::-webkit-scrollbar {
-                display: none !important;
-                width: 0 !important;
-                height: 0 !important;
-            }
-
-            /* Masquer tous les éléments Streamlit non nécessaires */
-            #MainMenu, header, [data-testid="stHeader"],
-            [data-testid="stToolbar"], [data-testid="stDecoration"],
-            .viewerBadge {
-                display: none !important;
-            }
-
-            /* Réinitialisation des conteneurs */
-            .main .block-container {
-                max-width: 100% !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                overflow: visible !important;
-            }
-
-            .element-container {
-                padding: 0 !important;
-                margin: 0 !important;
-                overflow: visible !important;
-            }
-
-            /* Suppression de tous les scrolls */
-            * {
-                -ms-overflow-style: none !important;
-                scrollbar-width: none !important;
-                overflow: visible !important;
-            }
-
-            /* Réinitialiser la mise en page globale */
-            .stApp > header {
-                background-color: transparent !important;
-            }
-
-            .stApp {
-                margin-top: -80px !important;
-            }
-
-            /* Dernier conteneur qui peut contenir le footer */
-            .element-container:last-child {
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-                height: auto !important;
-            }
-
-            /* Classes spécifiques du footer Streamlit */
-            .css-1kyxreq, .css-1r6slb0 {
-                display: none !important;
-            }
-
-            /* Ciblage très agressif du widget Streamlit */
+            /* Reset complet avec !important */
             .viewerBadge_container__1QSob,
             .viewerBadge_link__1S137,
             .viewerBadge_text__1JaDK,
-            .viewerBadge_container__r5goodbye,
+            .streamlit-footer,
             [data-testid="stFooter"],
-            .element-container iframe,
-            iframe[src*="streamlit.io"],
-            .streamlit-widget,
-            .stFooter,
+            [data-testid="stToolbar"],
             footer,
             footer.css-1lsmgbg,
-            .element-container:last-child iframe,
-            footer[data-testid="stFooter"],
-            footer > div,
-            footer > span,
-            footer a,
-            .stDeployButton,
+            footer.css-qri22k,
+            footer.css-erpbzb,
+            .css-1kyxreq,
+            .css-1r6slb0,
             .css-5rimss,
-            .css-1lsmgbg,
-            .css-qri22k,
-            .css-erpbzb {
+            .stDeployButton {
                 display: none !important;
-                opacity: 0 !important;
-                height: 0 !important;
-                width: 0 !important;
-                position: absolute !important;
-                pointer-events: none !important;
-                z-index: -9999 !important;
                 visibility: hidden !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: hidden !important;
-                border: none !important;
+                height: 0px !important;
+                min-height: 0px !important;
+                margin: 0px !important;
+                padding: 0px !important;
+                position: fixed !important;
+                opacity: 0 !important;
+                top: -100000px !important;
             }
-            
-            /* Forcer la suppression du conteneur du widget */
-            div:has(> iframe[src*="streamlit.io"]) {
+
+            /* Suppression du widget hosted by streamlit */
+            .element-container:has(.stDeployButton) {
                 display: none !important;
             }
 
-            /* S'assurer qu'aucun espace n'est réservé */
-            .element-container:last-of-type {
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-                height: 0 !important;
-                min-height: 0 !important;
+            /* Cacher la dernière div qui contient souvent le footer */
+            .element-container:last-child:has(iframe),
+            .element-container:last-child:has(footer) {
+                display: none !important;
+                height: 0px !important;
+            }
+
+            /* Arrêter la page avant le footer */
+            .block-container {
+                padding-bottom: 0px !important;
+                margin-bottom: 0px !important;
+            }
+
+            /* Supprimer la barre de défilement */
+            ::-webkit-scrollbar {
+                display: none !important;
+                width: 0px !important;
+                height: 0px !important;
+            }
+
+            * {
+                -ms-overflow-style: none !important;
+                scrollbar-width: none !important;
             }
         </style>
     """, unsafe_allow_html=True)
