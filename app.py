@@ -208,43 +208,31 @@ def send_log_email(subject, body, to_email):
 def apply_custom_css():
     st.markdown("""
         <style>
-            /* Réinitialisation totale */
+            /* Reset conteneur principal sans marges négatives */
             .stApp {
-                margin: -90px -1rem -4rem -1rem !important;
-                padding: 0 !important;
+                padding: 0 1rem !important;  /* Ajout padding horizontal */
+                margin: -90px 0 -4rem 0 !important;  /* Garde marges verticales */
                 background: none !important;
             }
             
-            /* Masquer vraiment TOUS les éléments Streamlit */
+            /* S'assurer que le contenu a la bonne largeur */
+            .main .block-container {
+                max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin: 0 !important;
+            }
+            
+            /* Masquer éléments Streamlit */
             footer, header, #MainMenu, .stDeployButton, [data-testid="stFooter"],
-            [data-testid="stHeader"], [data-testid="stToolbar"],
-            .css-eh5xgm, .css-1avcm0n, .css-14xtw13 {
+            [data-testid="stHeader"], [data-testid="stToolbar"] {
                 display: none !important;
-                height: 0 !important;
-                position: absolute !important;
-                top: -9999px !important;
-                left: -9999px !important;
             }
             
-            /* Réinitialiser tous les conteneurs */
-            .main, .block-container, .element-container, section {
-                margin: 0 !important;
+            /* Assurer que le contenu est bien aligné */
+            .element-container {
                 padding: 0 !important;
-                border: none !important;
-                background: none !important;
-            }
-            
-            /* Intégration fluide */
-            .stApp > * {
-                font-family: inherit !important;
-                color: inherit !important;
-                background: inherit !important;
-            }
-            
-            /* Supprimer espaces inutiles */
-            .css-1544g2n, .css-1q1n0ol {
-                padding: 0 !important;
-                margin: 0 !important;
+                width: 100% !important;
             }
         </style>
     """, unsafe_allow_html=True)
