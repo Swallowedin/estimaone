@@ -178,8 +178,8 @@ Question : {question}
     send_log_email(subject, log_message, to_email)
 
 st.set_page_config(
-    page_title="Estim'IA - Obtenez une estimation grâce à l'IA", 
-    page_icon="⚖️", 
+    page_title="Estim'IA - Obtenez une estimation grâce à l'intelligence artificielle", 
+    page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="collapsed"  # Cache la barre latérale
 )
@@ -196,7 +196,7 @@ def send_log_email(subject, body, to_email):
     msg.attach(MIMEText(body, 'plain'))
 
     try:
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:  # Ajustez selon votre fournisseur d'email
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
             server.starttls()
             server.login(from_email, password)
             server.send_message(msg)
@@ -710,12 +710,12 @@ def get_dynamic_client_type_fields():
 def main():
     apply_custom_css()
     
-    st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
+    st.title("🏛️ Estim'IA by View Avocats\nEstimez gratuitement le prix de nos services en quelques secondes grâce à l'intelligence artificielle")
 
     client_info = get_dynamic_client_type_fields()
     urgency = st.selectbox("Degré d'urgence :", ("Normal", "Urgent"))
 
-    exemple_cas = """Exemple : Mon voisin a construit une extension de sa maison qui empiète de 50 cm sur mon terrain. J'ai essayé de lui en parler à l'amiable, mais il refuse de reconnaître le problème. Je souhaite connaître mes droits et les démarches possibles pour résoudre cette situation, si possible sans aller jusqu'au procès."""
+    exemple_cas = """Exemple : Mon voisin a construit une extension de sa maison qui empiète de 50 cm sur mon terrain. J'ai essayé de lui en parler, mais il refuse de reconnaître le problème. Je souhaiterais consulter un avcat pour connaître mes droits et les démarches possibles pour résoudre cette situation, si possible sans aller jusqu'au procès."""
 
     question = st.text_area(
         "Expliquez brièvement votre cas, notre intelligence artificielle s'occupe du reste !",
