@@ -821,7 +821,7 @@ def main():
                                         📌 <strong>Note importante :</strong> Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation. 
                                     </p>
                                     <p style="margin: 5px 0 0 0; color: #666;">
-                                        Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Si vous êtes un particulier, il est possible de payer en plusieurs fois.
+                                        Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas.
                                     </p>
                                 </div>
                                 """, unsafe_allow_html=True)
