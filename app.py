@@ -807,7 +807,9 @@ def main():
                                 <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                     <h3 style="color: #1f618d; margin: 0;">Estimation de la prestation</h3>
                                     <p style="font-size: 22px; font-weight: bold; color: #417068; margin: 10px 0;">
-                                        <span style="color: #3c7be7;">À partir de {forfait} €HT</span>
+                                        <p style="font-size: 14px; color: #666; margin: 0; padding: 0;">À partir de</p>
+                                        <p style="font-size: 22px; font-weight: bold; color: #3c7be7; margin: 0; padding: 0;">
+                                        {forfait} €HT
                                     </p>
                                     <small style="color: #666;">Pour {domaine_label.lower()} • {prestation_label}</small>
                                 </div>
