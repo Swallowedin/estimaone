@@ -838,15 +838,6 @@ def main():
                                     elif not is_relevant:
                                         st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
-                                st.markdown("### 💡 Recommandations")
-                                st.success("""
-                                **Consultation initiale recommandée** - Si vous souhaitez uniquement bénéficier d'une consultation pour connaître vos droits, 
-                                nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
-                                - Évaluer précisément la complexité de votre situation
-                                - Vous fournir des conseils juridiques adaptés
-                                - Élaborer une stratégie sur mesure pour votre situation
-                                """)
-
                                 st.markdown("---")
 
                                 if sources and sources != "Aucune source spécifique mentionnée.":
