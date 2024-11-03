@@ -940,13 +940,28 @@ def get_prestations():
                 }
             }
         },
-        "Autres prestations pour les professionnels": {
-            "label": "Autres prestations",
+        "externalisation_juridique": {
+            "label": "Externalisation juridique",
             "prestations": {
-                "Externalisation_fonctions_juridiques": {
-                    "label": "Externalisation du service juridique",
+                "externalisation_complete": {
+                    "label": "Externalisation complète des fonctions juridiques",
                     "tarif": 2000,
-                    "definition": "Accompagnement de l'entreprise dans toutes ses problématiques en lieu et place d'un service juridique interne."
+                    "definition": "Accompagnement complet de l'entreprise dans toutes ses problématiques juridiques en lieu et place d'un service juridique interne. Inclut le conseil régulier, la gestion des contrats et la veille juridique."
+                },
+                "externalisation_partielle": {  # Nouvelle option plus flexible
+                    "label": "Externalisation juridique partielle",
+                    "tarif": 1200,
+                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes."
+                },
+                "conseil_juridique_ponctuel": {
+                    "label": "Conseil juridique ponctuel",
+                    "tarif": 800,
+                    "definition": "Assistance juridique ponctuelle pour des besoins spécifiques de l'entreprise."
+                },
+                "audit_juridique_global": {
+                    "label": "Audit juridique global",
+                    "tarif": 3000,
+                    "definition": "Évaluation complète de la situation juridique de l'entreprise et identification des besoins d'accompagnement."   
                 }
             }
         }
