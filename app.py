@@ -571,41 +571,6 @@ class AntiSpam:
         st.session_state.last_submit_time = current_time
         return True, ""
 
-def display_satisfaction_section():
-    st.markdown("📌 **Note importante :** Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation.")
-    st.write("Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas.")
-    st.write("**💭 Vous êtes satisfait par cette première estimation ?**")
-    
-    # Utilisation des colonnes de Streamlit pour les boutons
-    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
-    
-    # Centrer les boutons dans les colonnes du milieu
-    with col2:
-        if st.button("Oui, c'est utile", type="primary", key="btn_oui"):
-            st.session_state.show_feedback = True
-    
-    with col3:
-        if st.button("J'ai besoin de précisions", key="btn_non"):
-            st.session_state.show_feedback = True
-
-    # Initialiser l'état si nécessaire
-    if "show_feedback" not in st.session_state:
-        st.session_state.show_feedback = False
-
-    # Afficher le feedback si un des boutons a été cliqué
-    if st.session_state.show_feedback:
-        st.info("""
-        N'hésitez pas à prendre contact avec nous pour :
-        
-        ✓ Affiner cette estimation selon votre situation spécifique
-        
-        ✓ Discuter de l'accompagnement personnalisé que vous souhaitez
-        
-        ✓ Obtenir des réponses à vos questions complémentaires
-        
-        *Utilisez le formulaire de contact ci-dessous ou appelez-nous directement pour un échange plus direct.*
-        """)
-
 def display_contact_form():
     """
     Affiche et gère le formulaire de contact avec protection anti-spam
@@ -849,10 +814,17 @@ def main():
                                     <small style="color: #666;">Pour {domaine_label.lower()} • {prestation_label}</small>
                                 </div>
                                 """, unsafe_allow_html=True)
-
-                                # Section satisfaction et feedback
-                                display_satisfaction_section()
                                 
+                                st.markdown("""
+                                <div style="background-color: #fafafa; padding: 10px; border-left: 4px solid #3c7be7; border-radius: 4px;">
+                                    <p style="margin: 0; color: #555;">
+                                        📌 <strong>Note importante :</strong> Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation. 
+                                    </p>
+                                    <p style="margin: 5px 0 0 0; color: #666;">
+                                        Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas.
+                                    </p>
+                                </div>
+                                """, unsafe_allow_html=True)
                                 st.markdown("---")
 
                                 col1, col2 = st.columns([1, 2])
@@ -883,3 +855,6 @@ def main():
         © 2024 View Avocats. Tous droits réservés.
         </div>
     """, unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
