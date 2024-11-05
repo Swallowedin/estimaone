@@ -572,43 +572,39 @@ class AntiSpam:
         return True, ""
 
 def display_satisfaction_section():
-    """
-    Affiche une section pour évaluer la satisfaction
-    """
-    st.markdown("""
-    📌 **Note importante :** Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation.
+    st.markdown("📌 **Note importante :** Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation.")
+    st.write("Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas.")
+    st.write("**💭 Vous êtes satisfait par cette première estimation ?**")
     
-    Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas.
+    # Utilisation des colonnes de Streamlit pour les boutons
+    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
     
-    **💭 Vous êtes satisfait par cette première estimation ?**
+    # Centrer les boutons dans les colonnes du milieu
+    with col2:
+        if st.button("Oui, c'est utile", type="primary", key="btn_oui"):
+            st.session_state.show_feedback = True
+    
+    with col3:
+        if st.button("J'ai besoin de précisions", key="btn_non"):
+            st.session_state.show_feedback = True
 
-    <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px;">
-        <button 
-            onclick="document.querySelector('#satisfaction-feedback').style.display='block';" 
-            style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
-            Oui, c'est utile
-        </button>
-        <button 
-            onclick="document.querySelector('#satisfaction-feedback').style.display='block';" 
-            style="background-color: #f0ad4e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
-            J'ai besoin de précisions
-        </button>
-    </div>
+    # Initialiser l'état si nécessaire
+    if "show_feedback" not in st.session_state:
+        st.session_state.show_feedback = False
 
-    <div id="satisfaction-feedback" style="display: none; padding: 15px; background-color: white; border-radius: 5px; margin-top: 15px;">
-        <p style="color: #34495e; margin-bottom: 10px;">
-            N'hésitez pas à prendre contact avec nous pour :
-        </p>
-        <ul style="color: #34495e; list-style-type: none; padding-left: 0;">
-            <li style="margin-bottom: 8px;">✓ Affiner cette estimation selon votre situation spécifique</li>
-            <li style="margin-bottom: 8px;">✓ Discuter de l'accompagnement personnalisé que vous souhaitez</li>
-            <li style="margin-bottom: 8px;">✓ Obtenir des réponses à vos questions complémentaires</li>
-        </ul>
-        <p style="color: #34495e; font-style: italic; margin-top: 15px;">
-            Utilisez le formulaire de contact ci-dessous ou appelez-nous directement pour un échange plus direct.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    # Afficher le feedback si un des boutons a été cliqué
+    if st.session_state.show_feedback:
+        st.info("""
+        N'hésitez pas à prendre contact avec nous pour :
+        
+        ✓ Affiner cette estimation selon votre situation spécifique
+        
+        ✓ Discuter de l'accompagnement personnalisé que vous souhaitez
+        
+        ✓ Obtenir des réponses à vos questions complémentaires
+        
+        *Utilisez le formulaire de contact ci-dessous ou appelez-nous directement pour un échange plus direct.*
+        """)
 
 def display_contact_form():
     """
