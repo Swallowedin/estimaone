@@ -718,7 +718,7 @@ def main():
     exemple_cas = """Exemple : Mon voisin a construit une extension de sa maison qui empiète de 50 cm sur mon terrain. J'ai essayé de lui en parler, mais il refuse de reconnaître le problème. Je souhaiterais consulter un avcat pour connaître mes droits et les démarches possibles pour résoudre cette situation, si possible sans aller jusqu'au procès."""
 
     question = st.text_area(
-        "Expliquez brièvement votre cas, notre intelligence artificielle s'occupe du reste !",
+        "Expliquez brièvement votre cas, notre intelligence artificielle s'occupe du reste ! L'outil est totalement anonyme - aucune information personnelle n'est requise pour obtenir une estimation.",
         height=80,
         placeholder=exemple_cas
     )
