@@ -863,13 +863,9 @@ def main():
                                 </div>
                                 """, unsafe_allow_html=True)
 
-                                 if sources and sources != "Aucune source spécifique mentionnée.":
-                                    with st.expander("Sources juridiques"):
-                                        st.write(sources)
-                                
                                 # Ajouter la section de satisfaction
                                 display_satisfaction_section()
-
+                                
                                 st.markdown("---")
 
                                 col1, col2 = st.columns([1, 2])
