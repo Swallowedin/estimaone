@@ -571,6 +571,43 @@ class AntiSpam:
         st.session_state.last_submit_time = current_time
         return True, ""
 
+def display_satisfaction_section():
+    """
+    Affiche une section pour évaluer la satisfaction de l'utilisateur et l'encourager à prendre contact
+    """
+    st.markdown("""
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <h4 style="color: #2c3e50; margin-bottom: 15px;">💭 Vous êtes satisfait par cette première estimation ?</h4>
+            
+            <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px;">
+                <button 
+                    onclick="document.querySelector('#satisfaction-feedback').style.display='block';" 
+                    style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                    Oui, c'est utile
+                </button>
+                <button 
+                    onclick="document.querySelector('#satisfaction-feedback').style.display='block';" 
+                    style="background-color: #f0ad4e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                    J'ai besoin de précisions
+                </button>
+            </div>
+            
+            <div id="satisfaction-feedback" style="display: none; padding: 15px; background-color: white; border-radius: 5px; margin-top: 15px;">
+                <p style="color: #34495e; margin-bottom: 10px;">
+                    N'hésitez pas à prendre contact avec nous pour :
+                </p>
+                <ul style="color: #34495e; list-style-type: none; padding-left: 0;">
+                    <li style="margin-bottom: 8px;">✓ Affiner cette estimation selon votre situation spécifique</li>
+                    <li style="margin-bottom: 8px;">✓ Discuter de l'accompagnement personnalisé que vous souhaitez</li>
+                    <li style="margin-bottom: 8px;">✓ Obtenir des réponses à vos questions complémentaires</li>
+                </ul>
+                <p style="color: #34495e; font-style: italic; margin-top: 15px;">
+                    Utilisez le formulaire de contact ci-dessous ou appelez-nous directement pour un échange plus direct.
+                </p>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
 def display_contact_form():
     """
     Affiche et gère le formulaire de contact avec protection anti-spam
@@ -825,6 +862,14 @@ def main():
                                     </p>
                                 </div>
                                 """, unsafe_allow_html=True)
+
+                                 if sources and sources != "Aucune source spécifique mentionnée.":
+                                    with st.expander("Sources juridiques"):
+                                        st.write(sources)
+                                
+                                # Ajouter la section de satisfaction
+                                display_satisfaction_section()
+
                                 st.markdown("---")
 
                                 col1, col2 = st.columns([1, 2])
