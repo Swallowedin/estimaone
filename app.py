@@ -573,41 +573,42 @@ class AntiSpam:
 
 def display_satisfaction_section():
     """
-    Affiche une section pour évaluer la satisfaction avec des boutons Streamlit interactifs
+    Affiche une section pour évaluer la satisfaction
     """
-    st.markdown("📌 **Note importante :** Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation.")
-    st.markdown("Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas.")
-    st.markdown("**💭 Vous êtes satisfait par cette première estimation ?**")
-
-    col1, col2 = st.columns(2)
+    st.markdown("""
+    📌 **Note importante :** Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation.
     
-    if col1.button("Oui, c'est utile", type="primary"):
-        st.session_state.show_feedback = True
+    Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas.
     
-    if col2.button("J'ai besoin de précisions", type="secondary"):
-        st.session_state.show_feedback = True
+    **💭 Vous êtes satisfait par cette première estimation ?**
 
-    # Initialiser l'état si nécessaire
-    if 'show_feedback' not in st.session_state:
-        st.session_state.show_feedback = False
+    <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px;">
+        <button 
+            onclick="document.querySelector('#satisfaction-feedback').style.display='block';" 
+            style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+            Oui, c'est utile
+        </button>
+        <button 
+            onclick="document.querySelector('#satisfaction-feedback').style.display='block';" 
+            style="background-color: #f0ad4e; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+            J'ai besoin de précisions
+        </button>
+    </div>
 
-    # Afficher le feedback si un bouton a été cliqué
-    if st.session_state.show_feedback:
-        st.markdown("""
-        <div style="padding: 15px; background-color: white; border-radius: 5px; margin-top: 15px;">
-            <p style="color: #34495e; margin-bottom: 10px;">
-                N'hésitez pas à prendre contact avec nous pour :
-            </p>
-            <ul style="color: #34495e; list-style-type: none; padding-left: 0;">
-                <li style="margin-bottom: 8px;">✓ Affiner cette estimation selon votre situation spécifique</li>
-                <li style="margin-bottom: 8px;">✓ Discuter de l'accompagnement personnalisé que vous souhaitez</li>
-                <li style="margin-bottom: 8px;">✓ Obtenir des réponses à vos questions complémentaires</li>
-            </ul>
-            <p style="color: #34495e; font-style: italic; margin-top: 15px;">
-                Utilisez le formulaire de contact ci-dessous ou appelez-nous directement pour un échange plus direct.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+    <div id="satisfaction-feedback" style="display: none; padding: 15px; background-color: white; border-radius: 5px; margin-top: 15px;">
+        <p style="color: #34495e; margin-bottom: 10px;">
+            N'hésitez pas à prendre contact avec nous pour :
+        </p>
+        <ul style="color: #34495e; list-style-type: none; padding-left: 0;">
+            <li style="margin-bottom: 8px;">✓ Affiner cette estimation selon votre situation spécifique</li>
+            <li style="margin-bottom: 8px;">✓ Discuter de l'accompagnement personnalisé que vous souhaitez</li>
+            <li style="margin-bottom: 8px;">✓ Obtenir des réponses à vos questions complémentaires</li>
+        </ul>
+        <p style="color: #34495e; font-style: italic; margin-top: 15px;">
+            Utilisez le formulaire de contact ci-dessous ou appelez-nous directement pour un échange plus direct.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 def display_contact_form():
     """
