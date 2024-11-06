@@ -141,7 +141,7 @@ def get_prestations():
                 "externalisation_partielle": {
                     "label": "Externalisation juridique partielle",
                     "tarif": 2000,
-                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière d'immobilier ou d'immobilier commercial."
+                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière d' ou d' commercial."
                 }
             }
         },
@@ -873,8 +873,8 @@ def get_prestations():
                     "tarif": 2000,
                     "definition": "Gestion des litiges et conseil en droit de la copropriété. Concerne en général pour les particuliers"
                 },
-                "location_immobilière": {
-                    "label": "Droit de la copropriété",
+                "litige_location_immobilière": {
+                    "label": "Location immobilière",
                     "tarif": 1500,
                     "definition": "Gestion des litiges locatifs divers et des loyers impayés. Concerne en général pour les particuliers"
                 },
