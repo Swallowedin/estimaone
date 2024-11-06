@@ -137,7 +137,12 @@ def get_prestations():
                     "label": "Consultation juridique et réglementaire",
                     "tarif": 800,
                     "definition": "Analyse approfondie d'une situation juridique spécifique et conseil sur les implications réglementaires. Valable pour les professionnels, les personnes morales ou les particuliers se lançant dans l'entrepreneuriat" 
-                }    
+                },
+                "externalisation_partielle": {
+                    "label": "Externalisation juridique partielle",
+                    "tarif": 2000,
+                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière d'immobilier ou d'immobilier commercial."
+                }
             }
         },
         "droit_des_affaires": {
@@ -167,6 +172,11 @@ def get_prestations():
                     "label": "Gestion de contentieux commercial",
                     "tarif": 2500,
                     "definition": "Représentation et défense des intérêts de l'entreprise dans les litiges commerciaux."
+                },
+                "externalisation_partielle": {
+                    "label": "Externalisation juridique partielle",
+                    "tarif": 2000,
+                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière de droit des affaires."
                 }
             }
         },
@@ -197,6 +207,11 @@ def get_prestations():
                     "label": "Contentieux en contrefaçon",
                     "tarif": 3500,
                     "definition": "Représentation juridique dans les litiges liés à la contrefaçon de propriété intellectuelle."
+                },
+                "externalisation_partielle": {
+                    "label": "Externalisation juridique partielle",
+                    "tarif": 2000,
+                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière de propriété intellectuelle."
                 }
             }
         },    
@@ -227,6 +242,11 @@ def get_prestations():
                     "label": "Conseil en procédure de licenciement",
                     "tarif": 600,
                     "definition": "Accompagnement et conseil pour la mise en place d'une procédure de licenciement conforme au droit du travail."
+                },
+                "externalisation_partielle": {
+                    "label": "Externalisation juridique partielle",
+                    "tarif": 2000,
+                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière de droit du travail."
                 }
             }
         },
@@ -282,6 +302,11 @@ def get_prestations():
                     "label": "Conseil en contrats de sous-traitance",
                     "tarif": 1600,
                     "definition": "Élaboration et révision de contrats de sous-traitance dans le domaine de la construction."
+                },
+                "externalisation_partielle": {
+                    "label": "Externalisation juridique partielle",
+                    "tarif": 2000,
+                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière de droit de la construction."
                 }
             }
         },
@@ -707,6 +732,11 @@ def get_prestations():
                     "label": "Conseil en gouvernance d'entreprise",
                     "tarif": 2800,
                     "definition": "Conseil sur les meilleures pratiques de gouvernance d'entreprise."
+                },
+                "externalisation_partielle": {
+                    "label": "Externalisation juridique partielle",
+                    "tarif": 2000,
+                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière de droit des sociétés."
                 }
             }
         },
@@ -762,6 +792,11 @@ def get_prestations():
                     "label": "Audit de réseau de distribution",
                     "tarif": 3500,
                     "definition": "Évaluation complète de la conformité juridique d'un réseau de distribution."
+                },
+                "externalisation_partielle": {
+                    "label": "Externalisation juridique partielle",
+                    "tarif": 2000,
+                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière de droit de la distribution."
                 }
             }
         },
@@ -912,6 +947,11 @@ def get_prestations():
                     "label": "Conformité contrôle des exportations",
                     "tarif": 4800,
                     "definition": "Conseil sur la conformité aux réglementations de contrôle des exportations."
+                },
+                "externalisation_partielle": {
+                    "label": "Externalisation juridique partielle",
+                    "tarif": 2000,
+                    "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière de compliance."
                 }
             }
         },
