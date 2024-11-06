@@ -699,6 +699,7 @@ def get_dynamic_client_type_fields():
                     "Commerce",
                     "Services",
                     "Industrie",
+                    "banque et assurance",
                     "BTP",
                     "Tech",
                     "Autre"
