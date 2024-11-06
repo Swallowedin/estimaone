@@ -873,6 +873,11 @@ def get_prestations():
                     "tarif": 2000,
                     "definition": "Gestion des litiges et conseil en droit de la copropriété. Concerne en général pour les particuliers"
                 },
+                "location_immobilière": {
+                    "label": "Droit de la copropriété",
+                    "tarif": 1500,
+                    "definition": "Gestion des litiges locatifs divers et des loyers impayés. Concerne en général pour les particuliers"
+                },
                 "création_société_civile_immobilière": {
                     "label": "Création de statuts de société SCI",
                     "tarif": 1000,
