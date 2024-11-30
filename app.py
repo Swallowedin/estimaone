@@ -19,6 +19,61 @@ import random
 MAX_GLOBAL_REQUESTS = 100  # Maximum de requêtes globales
 RESET_INTERVAL = 600     # 10 minutes en secondes
 
+class KeepAliveManager:
+    def __init__(self):
+        if 'last_keepalive' not in st.session_state:
+            st.session_state.last_keepalive = datetime.now()
+        if 'keepalive_count' not in st.session_state:
+            st.session_state.keepalive_count = 0
+
+    def handle_keepalive(self, auth_token: str = None) -> dict:
+        """
+        Gère les requêtes de keepalive
+        
+        Args:
+            auth_token: Token d'authentification optionnel
+        
+        Returns:
+            dict: Réponse avec statut et informations
+        """
+        expected_token = os.getenv('KEEPALIVE_TOKEN', 'votre_token_secret_ici')
+        
+        # Vérification basique du token
+        if auth_token != expected_token:
+            logging.warning(f"Tentative de keepalive avec un token invalide depuis {st.get_client_ip()}")
+            return {
+                "status": "error",
+                "message": "Token invalide",
+                "timestamp": datetime.now().isoformat()
+            }
+
+        # Mise à jour des statistiques
+        st.session_state.last_keepalive = datetime.now()
+        st.session_state.keepalive_count += 1
+
+        # Log de l'événement
+        logging.info(f"Keepalive reçu - Total: {st.session_state.keepalive_count}")
+
+        return {
+            "status": "success",
+            "last_keepalive": st.session_state.last_keepalive.isoformat(),
+            "count": st.session_state.keepalive_count,
+            "timestamp": datetime.now().isoformat()
+        }
+
+# Ajoutez ces lignes dans votre fichier app.py principal
+keep_alive_manager = KeepAliveManager()
+
+# Route pour le keepalive
+def handle_keepalive_endpoint():
+    params = st.experimental_get_query_params()
+    auth_token = params.get('token', [None])[0]
+    
+    response = keep_alive_manager.handle_keepalive(auth_token)
+    
+    # Conversion en JSON pour l'affichage
+    st.write(json.dumps(response, indent=2))
+
 def display_analysis_summary(question: str, detailed_analysis: str):
     """
     Affiche un résumé de l'analyse en termes accessibles aux non-juristes
@@ -710,16 +765,31 @@ def get_dynamic_client_type_fields():
 
 def main():
     apply_custom_css()
-    
-    st.title("🏛️ Estim'IA by View Avocats\nEstimez gratuitement le prix de nos services en quelques secondes grâce à l'intelligence artificielle")
+
+    # Gestion du keepalive en premier pour éviter l'affichage inutile de l'interface
+    if "keepalive" in st.experimental_get_query_params():
+        handle_keepalive_endpoint()
+        return
+
+    st.title("🏛️ Estim'IA by View Avocats\nObtenez une première estimation du prix de nos services en quelques secondes grâce à l'IA")
+
+    # Initialisation du KeepAliveManager si pas déjà fait
+    if 'keep_alive_manager' not in st.session_state:
+        st.session_state.keep_alive_manager = KeepAliveManager()
+
+    # Affichage du dernier keepalive en mode debug si nécessaire
+    if os.getenv('DEBUG', 'false').lower() == 'true':
+        with st.expander("Debug - Keepalive Info", expanded=False):
+            st.write(f"Dernier keepalive: {st.session_state.keep_alive_manager.last_keepalive}")
+            st.write(f"Nombre total de keepalives: {st.session_state.keep_alive_manager.keepalive_count}")
 
     client_info = get_dynamic_client_type_fields()
     urgency = st.selectbox("Degré d'urgence :", ("Normal", "Urgent"))
 
-    exemple_cas = """Exemple : Mon voisin a construit une extension de sa maison qui empiète de 50 cm sur mon terrain. J'ai essayé de lui en parler, mais il refuse de reconnaître le problème. Je souhaiterais consulter un avcat pour connaître mes droits et les démarches possibles pour résoudre cette situation, si possible sans aller jusqu'au procès."""
+    exemple_cas = """Exemple : Mon voisin a construit une extension de sa maison qui empiète de 50 cm sur mon terrain. J'ai essayé de lui en parler à l'amiable, mais il refuse de reconnaître le problème. Je souhaite connaître mes droits et les démarches possibles pour résoudre cette situation, si possible sans aller jusqu'au procès."""
 
     question = st.text_area(
-        "Expliquez brièvement votre cas, notre intelligence artificielle s'occupe du reste ! L'outil est totalement anonyme - aucune information personnelle n'est requise pour obtenir une estimation.",
+        "Expliquez brièvement votre cas, notre intelligence artificielle s'occupe du reste !",
         height=80,
         placeholder=exemple_cas
     )
@@ -808,9 +878,7 @@ def main():
                                 <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                                     <h3 style="color: #1f618d; margin: 0;">Estimation de la prestation</h3>
                                     <p style="font-size: 22px; font-weight: bold; color: #417068; margin: 10px 0;">
-                                        <p style="font-size: 14px; color: #666; margin: 0; padding: 0;">À partir de</p>
-                                        <p style="font-size: 22px; font-weight: bold; color: #3c7be7; margin: 0; padding: 0;">
-                                        {forfait} €HT
+                                        <span style="color: #3c7be7;">{forfait} €HT</span>
                                     </p>
                                     <small style="color: #666;">Pour {domaine_label.lower()} • {prestation_label}</small>
                                 </div>
@@ -822,7 +890,7 @@ def main():
                                         📌 <strong>Note importante :</strong> Cette estimation est fournie hors taxes et à titre indicatif. Elle peut varier en fonction de la complexité de votre situation. 
                                     </p>
                                     <p style="margin: 5px 0 0 0; color: #666;">
-                                        Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas.
+                                        Nous vous invitons à nous contacter pour une évaluation personnalisée qui prendra en compte tous les détails de votre cas. Si vous êtes un particulier, il est possible de payer en plusieurs fois.
                                     </p>
                                 </div>
                                 """, unsafe_allow_html=True)
@@ -839,6 +907,15 @@ def main():
                                     elif not is_relevant:
                                         st.info("Nous ne sommes pas sûr qu'il s'agisse d'une question d'ordre juridique. L'estimation ci-dessus est fournie à titre indicatif.")
 
+                                st.markdown("### 💡 Recommandations")
+                                st.success("""
+                                **Consultation initiale recommandée** - Si vous souhaitez uniquement bénéficier d'une consultation pour connaître vos droits, 
+                                nous vous recommandons de prendre rendez-vous pour une consultation initiale d'un montant de 200€HT. Cette première analyse de votre situation nous permettra de :
+                                - Évaluer précisément la complexité de votre situation
+                                - Vous fournir des conseils juridiques adaptés
+                                - Élaborer une stratégie sur mesure pour votre situation
+                                """)
+
                                 st.markdown("---")
 
                                 if sources and sources != "Aucune source spécifique mentionnée.":
@@ -851,11 +928,19 @@ def main():
     st.markdown("---")
     display_contact_form()
     
-    st.markdown("""
+    # Footer avec informations sur le dernier keepalive en mode debug
+    footer_content = """
         <div style="text-align: center; color: #666; font-size: 0.8em; margin-top: 20px;">
         © 2024 View Avocats. Tous droits réservés.
-        </div>
-    """, unsafe_allow_html=True)
+    """
+    
+    if os.getenv('DEBUG', 'false').lower() == 'true':
+        last_keepalive = getattr(st.session_state.get('keep_alive_manager', None), 'last_keepalive', None)
+        if last_keepalive:
+            footer_content += f"<br>Dernier keepalive: {last_keepalive.strftime('%Y-%m-%d %H:%M:%S')}"
+    
+    footer_content += "</div>"
+    st.markdown(footer_content, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
