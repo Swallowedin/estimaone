@@ -36,7 +36,7 @@ class KeepAliveManager:
         Returns:
             dict: Réponse avec statut et informations
         """
-        expected_token = os.getenv('KEEPALIVE_TOKEN', '-G9pPp*M9iX-5X)3<NTvb?^i5|%2}S')
+        expected_token = os.getenv('KEEPALIVE_TOKEN', 'ping')
         
         # Vérification basique du token
         if auth_token != expected_token:
