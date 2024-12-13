@@ -30,6 +30,36 @@ def get_prestations():
                 }
             }
         },
+        "procédures_collectives": {
+            "label": "procédures collectives",
+            "prestations": {
+                "liquidation": {
+                    "label": "Procédure de liquidation",
+                    "tarif": 1000,
+                    "definition": "Accompagnement d'une entreprise en situation de faillite dans le cadre d'une procédure de liquidation."
+                },
+                "procédure_sauvegarde": {
+                    "label": "procédure de sauvegarde",
+                    "tarif": 1500,
+                    "definition": "Accompagnement d'une société en difficiculté dans l'élaboration et la mise en oeuvre d'un plan de sauvegarde ou de mandat ad hoc. Pour les sociétés en difficulté qui ne sont pas en situation de cessation de paiement"
+                },
+                "procédure_redressement": {
+                    "label": "Procédure de redressement",
+                    "tarif": 1000,
+                    "definition": "Accompagnement d'une société en difficulté dans la mise en oeuvre d'un plan de redressement. Vallable pour les sociétés en situation de cessation de paiement dont la situation n'est pas irrémédiablement compromise"
+                },
+                "déclaration_créance": {
+                    "label": "Déclaration de créance",
+                    "tarif": 800,
+                    "definition": "Accompagnement juridique dans le cadre d'une procédure de déclaration de créance. Valable lorsqu'une entreprise est créancière d'une société en difficulté."
+                },
+                "audit": {
+                    "label": "Audit d'entreprise en difficulté",
+                    "tarif": 1500,
+                    "definition": "Audit d'une société en difficulté afin d'évaluer la peRtinence d'une reprise. En général demandé par un acquéreur potentiel."
+                }
+            }
+        },
         "droit_immobilier_commercial": {
             "label": "Droit immobilier et commercial",
             "prestations": {
@@ -48,10 +78,10 @@ def get_prestations():
                     "tarif": 1000,
                     "definition": "Préparation d'un bail commercial de courte durée, dérogeant au statut des baux commerciaux. Valable pour les professionnels, les personnes morales ou les particuliers se lançant dans l'entrepreneuriat"
                 },
-                "redaction_bail_sous_location": {
-                    "label": "Rédaction de bail de sous-location",
+                "redaction_bail_sous_location_commerciale": {
+                    "label": "Rédaction de bail de sous-location à un bail commercial",
                     "tarif": 1000,
-                    "definition": "Élaboration d'un contrat permettant à un locataire de louer tout ou partie du bien à un tiers. Valable pour les professionnels, les personnes morales ou les particuliers se lançant dans l'entrepreneuriat"
+                    "definition": "Élaboration d'un contrat permettant à un locataire de louer tout ou partie du bien commercial à un tiers. Valable pour les professionnels, les personnes morales ou les particuliers se lançant dans l'entrepreneuriat"
                 },
                 "redaction_bail_professionnel": {
                     "label": "Rédaction de bail professionnel",
@@ -136,7 +166,7 @@ def get_prestations():
                 "consultation_juridique_et_reglementaire": {
                     "label": "Consultation juridique et réglementaire",
                     "tarif": 800,
-                    "definition": "Analyse approfondie d'une situation juridique spécifique et conseil sur les implications réglementaires. Valable pour les professionnels, les personnes morales ou les particuliers se lançant dans l'entrepreneuriat" 
+                    "definition": "Analyse approfondie d'une situation juridique spécifique et conseil sur les implications réglementaires. Valable pour les professionnels, les personnes morales ou les particuliers se lançant dans l'entrepreneuriat"
                 },
                 "externalisation_partielle": {
                     "label": "Externalisation juridique partielle",
@@ -158,10 +188,30 @@ def get_prestations():
                     "tarif": 600,
                     "definition": "Élaboration du document juridique fondamental définissant la structure et le fonctionnement d'une société."
                 },
-                "fusion_acquisition": {
-                    "label": "Conseil en fusion-acquisition",
+                "fusion_entreprises": {
+                    "label": "Conseil en fusion d'entreprises",
                     "tarif": 5000,
-                    "definition": "Assistance juridique pour les opérations de fusion, acquisition ou cession d'entreprises."
+                    "definition": "Assistance juridique pour les opérations de fusion d'entreprises."
+                },
+                 "acquisition_entreprise": {
+                    "label": "Conseil en acquisition d'entreprises",
+                    "tarif": 2000,
+                    "definition": "Assistance juridique pour les opérations de d'acquisition d'entreprises."
+                },
+                "location_gérance": {
+                    "label": "Accompagnement en matière de location gérance",
+                    "tarif": 2000,
+                    "definition": "Assistance juridique pour les opérations de contractualisation d'une location gérance."
+                },
+                "acquisition_fonds_commerce": {
+                    "label": "Acquisition d'un fonds de commerce",
+                    "tarif": 1500,
+                    "definition": "Accompagnement dans l'acquisition d'un fonds de commerce."
+                },
+                 "cession_entreprise": {
+                    "label": "Conseil en cession d'entreprises",
+                    "tarif": 2000,
+                    "definition": "Assistance juridique pour les opérations de cession d'entreprises."
                 },
                 "contrats_commerciaux": {
                     "label": "Rédaction de contrats commerciaux",
@@ -214,7 +264,7 @@ def get_prestations():
                     "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière de propriété intellectuelle."
                 }
             }
-        },    
+        },
         "droit_du_travail": {
             "label": "Droit du travail",
             "prestations": {
@@ -229,14 +279,39 @@ def get_prestations():
                     "definition": "Représentation et défense des intérêts du client devant les tribunaux pour un litige lié au droit du travail."
                 },
                 "redaction_contrat_travail": {
-                    "label": "Rédaction de contrat de travail",
+                    "label": "Rédaction de contrat de travail salarié",
                     "tarif": 500,
-                    "definition": "Élaboration d'un contrat de travail personnalisé et conforme à la législation en vigueur."
+                    "definition": "Élaboration d'un contrat de travail personnalisé pour un salarié et conforme à la législation en vigueur."
+                },
+                "redaction_contrat_travail_cadre": {
+                    "label": "Rédaction de contrat de travail pour un cadre",
+                    "tarif": 1200,
+                    "definition": "Élaboration d'un contrat de travail personnalisé pour un cadre et conforme à la législation en vigueur."
+                },
+                "redaction_contrat_travail_dirigeant": {
+                    "label": "Rédaction de contrat de travail pour un dirigeant",
+                    "tarif": 2500,
+                    "definition": "Élaboration d'un contrat de travail personnalisé pour un cadre supérieur ou un dirigeant et conforme à la législation en vigueur."
                 },
                 "negociation_rupture_conventionnelle": {
                     "label": "Négociation de rupture conventionnelle",
                     "tarif": 800,
                     "definition": "Assistance et conseil dans le processus de négociation d'une rupture conventionnelle."
+                },
+                "Plan_sauvegarde_emploi": {
+                    "label": "Elaboration d'un plan de sauvegarde de l'emploi",
+                    "tarif": 3000,
+                    "definition": "Elaboration d'un PSE, plan de sauvegarde de l'emploi, destiné à encadrer la procédure de licenciement de plusieurs salariés à la fois par l'entreprise pour un motif économique. Cette prestation intègre les livres 1 et 2."
+                },
+                "règlement_intérieur": {
+                    "label": "Rédaction ou révision d'un règlement intérieur",
+                    "tarif": 1000,
+                    "definition": "Élaboration ou révision d'un règlement intérieur."
+                },
+                "redaction_accord_collectif": {
+                    "label": "Rédaction d'un accord collectif",
+                    "tarif": 2500,
+                    "definition": "Élaboration d'un accord collectif et négociation avec le CSE."
                 },
                 "conseil_licenciement": {
                     "label": "Conseil en procédure de licenciement",
@@ -322,6 +397,11 @@ def get_prestations():
                     "label": "Procédure de divorce amiable",
                     "tarif": 1500,
                     "definition": "Accompagnement juridique pour un divorce par consentement mutuel."
+                },
+                "consultation_succession": {
+                    "label": "Consultation en matière de succession",
+                    "tarif": 600,
+                    "definition": "Consultation sur un sujet de succession en dehors d'une procédure contentieuse."
                 },
                 "pension_alimentaire": {
                     "label": "Fixation/révision de pension alimentaire",
@@ -878,6 +958,11 @@ def get_prestations():
                     "tarif": 1500,
                     "definition": "Gestion des litiges locatifs divers et des loyers impayés. Concerne en général pour les particuliers"
                 },
+                "expulsion_location_immobilière": {
+                    "label": "expuslion d'un locataire",
+                    "tarif": 1500,
+                    "definition": "Gestion des litiges locatifs divers et des loyers impayés. Concerne en général un propriétaire de bien immobilier"
+                },
                 "création_société_civile_immobilière": {
                     "label": "Création de statuts de société SCI",
                     "tarif": 1000,
@@ -981,7 +1066,7 @@ def get_prestations():
                 "audit_juridique_global": {
                     "label": "Audit juridique global",
                     "tarif": 3000,
-                    "definition": "Évaluation complète de la situation juridique de l'entreprise et identification des besoins d'accompagnement."   
+                    "definition": "Évaluation complète de la situation juridique de l'entreprise et identification des besoins d'accompagnement."
                 }
             }
         }
