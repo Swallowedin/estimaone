@@ -291,7 +291,7 @@ def get_prestations():
                 "redaction_contrat_travail_dirigeant": {
                     "label": "Rédaction de contrat de travail pour un dirigeant",
                     "tarif": 2500,
-                    "definition": "Élaboration d'un contrat de travail personnalisé pour un cadre supérieur ou un dirigeant et conforme à la législation en vigueur."
+                    "definition": "Élaboration d'un contrat de travail personnalisé pour un cadre supérieur, un membre de codir ou comex ou un dirigeant et conforme à la législation en vigueur."
                 },
                 "negociation_rupture_conventionnelle": {
                     "label": "Négociation de rupture conventionnelle",
