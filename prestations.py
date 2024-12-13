@@ -286,7 +286,7 @@ def get_prestations():
                 "redaction_contrat_travail_cadre": {
                     "label": "Rédaction de contrat de travail pour un cadre",
                     "tarif": 1200,
-                    "definition": "Élaboration d'un contrat de travail personnalisé pour un cadre ou cadre supérieur. Il convient pour les métiers qui présentent un degre de responsabilité plus important qu'un simple salarié."
+                    "definition": "Élaboration d'un contrat de travail personnalisé pour un poste à responsabilités du type cadre ou cadre supérieur. Il convient pour les métiers qui présentent un degre de responsabilité plus important qu'un simple salarié."
                 },
                 "redaction_contrat_travail_dirigeant": {
                     "label": "Rédaction de contrat de travail pour un dirigeant",
