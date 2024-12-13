@@ -14,4 +14,6 @@ def get_chatbot_instructions():
        Ne fournissez aucune explication ou justification supplémentaire.
 
     Votre réponse doit être pertinente, cohérente, et correspondre exactement aux domaines et prestations disponibles dans les options fournies.
+
+    ATTENTION : Certaines prestations peuvent se ressembler. Assures-toi donc de bien sélectionner la plus pertinente lorsqu'il existe plusieurs prestations proches, mais néanmoins différentes"
     """
