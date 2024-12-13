@@ -168,7 +168,7 @@ def get_prestations():
                     "tarif": 800,
                     "definition": "Analyse approfondie d'une situation juridique spécifique et conseil sur les implications réglementaires. Valable pour les professionnels, les personnes morales ou les particuliers se lançant dans l'entrepreneuriat"
                 },
-                "externalisation_partielle": {
+                "externalisation_service_immobilier_commercial": {
                     "label": "Externalisation juridique partielle",
                     "tarif": 2000,
                     "definition": "Accompagnement juridique sur des domaines spécifiques de l'entreprise, en complément des ressources internes existantes. Il s'agit d'externaliser une partie de l'équipe juridique d'une personne morale ou d'une société en matière d' ou d' commercial."
