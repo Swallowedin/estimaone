@@ -948,6 +948,11 @@ def get_prestations():
                     "tarif": 2200,
                     "definition": "Assistance juridique en matière de litiges ayant pour origine le non respect de la propriété privée. Concerne en général pour les particuliers"
                 },
+                "vente_immobilière": {
+                    "label": "vente immobilière",
+                    "tarif": 1200,
+                    "definition": "Assistance juridique en matière de litiges portant sur la vente de biens immobiliers, tels que les vices cachés. Concerne en général les particuliers"
+                },
                 "droit_copropriété": {
                     "label": "Droit de la copropriété",
                     "tarif": 2000,
