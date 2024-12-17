@@ -948,7 +948,7 @@ def get_prestations():
                     "tarif": 2200,
                     "definition": "Assistance juridique en matière de litiges ayant pour origine le non respect de la propriété privée. Concerne en général pour les particuliers"
                 },
-                "vente_immobilière": {
+                "litiges_vente_immobilière": {
                     "label": "vente immobilière",
                     "tarif": 1200,
                     "definition": "Assistance juridique pour tous les litiges liés à l'achat ou la vente d'un bien immobilier : vices cachés, non-conformité, problèmes liés à la garantie décennale, manquement à l'obligation d'information du vendeur, problèmes de diagnostic immobilier, défaut de surface Carrez, etc. Vaut pour les situations ou le bien est un bien à usage d'habitation, sinon, préférer pour les biens à usage commercial la catégorie des baux commerciaux."
