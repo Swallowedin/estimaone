@@ -951,7 +951,7 @@ def get_prestations():
                 "vente_immobilière": {
                     "label": "vente immobilière",
                     "tarif": 1200,
-                    "definition": "Assistance juridique en matière de litiges portant sur la vente de biens immobiliers, tels que les vices cachés. Concerne en général les particuliers"
+                    "definition": "Assistance juridique pour tous les litiges liés à l'achat ou la vente d'un bien immobilier : vices cachés, non-conformité, problèmes liés à la garantie décennale, manquement à l'obligation d'information du vendeur, problèmes de diagnostic immobilier, défaut de surface Carrez, etc. Vaut pour les situations ou le bien est un bien à usage d'habitation, sinon, préférer pour les biens à usage commercial la catégorie des baux commerciaux."
                 },
                 "droit_copropriété": {
                     "label": "Droit de la copropriété",
@@ -961,7 +961,7 @@ def get_prestations():
                 "litige_location_immobilière": {
                     "label": "Location immobilière",
                     "tarif": 1500,
-                    "definition": "Gestion des litiges locatifs divers et des loyers impayés. Concerne en général pour les particuliers"
+                    "definition": "Assistance juridique pour les conflits entre propriétaires et locataires : impayés de loyer, non-respect du bail, problèmes d'entretien courant, dépôt de garantie, état des lieux, charges locatives, etc. Ne concerne pas les vices cachés ou les problèmes liés à l'achat d'un bien. Ne concerne pas non plus les location et baux portant sur des biens à usage commercial."
                 },
                 "expulsion_location_immobilière": {
                     "label": "expuslion d'un locataire",
