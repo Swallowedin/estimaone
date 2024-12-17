@@ -961,7 +961,7 @@ def get_prestations():
                 "litige_location_immobilière": {
                     "label": "Location immobilière",
                     "tarif": 1500,
-                    "definition": "Assistance juridique pour les conflits entre propriétaires et locataires : impayés de loyer, non-respect du bail, problèmes d'entretien courant, dépôt de garantie, état des lieux, charges locatives, etc. Ne concerne pas les vices cachés ou les problèmes liés à l'achat d'un bien. Ne concerne pas non plus les location et baux portant sur des biens à usage commercial."
+                    "definition": "Assistance juridique pour les conflits entre propriétaires et locataires : impayés de loyer, non-respect du bail, problèmes d'entretien courant, dépôt de garantie, état des lieux, charges locatives, etc. Cette prestation ne concerne les problèmes liés à l'achat d'un bien immobilier. Ne concerne pas non plus les location et baux portant sur des biens à usage commercial."
                 },
                 "expulsion_location_immobilière": {
                     "label": "expuslion d'un locataire",
